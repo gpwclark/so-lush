@@ -1,5 +1,4 @@
-#!../../slsh/target/debug/sl-sh
-;; #!/usr/bin/env sl-sh
+#!/usr/bin/env sl-sh
 
 (ns-import 'shell)
 
