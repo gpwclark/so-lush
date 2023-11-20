@@ -69,6 +69,21 @@ vim		| vim						| git@github.com:gpwclark/vim.git
 zsh		| zsh PLUS everything else I want, e.g. inputrc	| git@github.com:gpwclark/zsh.git
 		| , environment initalization scripts, etc.	|
 ===================================================================================================================
+
+! don't forget about `vcsh foreach add -u` and ``vcsh foreach status -uno` # to ignore untracked files
+
+- settuing up a new machine
+1. install mr and vcsh
+2.
+vcsh clone git@github.com:gpwclark/vcsh_mr.git
+```
+3. Edit any desired configuration in .mrconfig file and the config directory in ~/.config/mr/
+```
+mr up
+```
+4. done!
+
+
 full list:
 $(vcsh list)
 "
@@ -279,6 +294,31 @@ Section: common-lisp"
 see: man batcholor
 Section: common-lisp"
 	(syscall (str $(which batchcolor))))
+
+	(alias nix
+"Explanation of nix commands:
+
+	- q is for query that are --installed
+		#> nix-env -q --installed
+	- q is for query that are -a (available) named \"git\"
+		#> nix-env -qa git
+
+Section: user-shell"
+	(syscall (str $(which nix))))
+
+	(alias git-crypt
+"good practice to list which files are encrypted `git-crypt status -e` 
+based on .gitattributes files
+that look like:
+
+===
+secrets.txt filter=git-crypt diff=git-crypt
+*.key filter=git-crypt diff=git-crypt
+secretdir/** filter=git-crypt diff=git-crypt
+===
+
+Section: user-shell"
+	(syscall (str $(which git-crypt))))
 
 (print-load-time "	after long live steve losh")
 ;;; }}}
