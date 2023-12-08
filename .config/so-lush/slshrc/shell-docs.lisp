@@ -51,8 +51,6 @@ clcli		| common lisp cli programs 			| git@github.com:gpwclark/clcli.git
 -------------------------------------------------------------------------------------------------------------------
 i3		| i3						| git@github.com:gpwclark/i3.git
 -------------------------------------------------------------------------------------------------------------------
-leo		| legacy note taking app			| git@bitbucket.org:price_clark/leo.git
--------------------------------------------------------------------------------------------------------------------
 mr		| public - my repos manages			| git@github.com:gpwclark/vcsh_mr.git
 		| which repos are active			|
 -------------------------------------------------------------------------------------------------------------------
@@ -64,13 +62,17 @@ systemd		| user space systemd stuffz			| git@github.com:gpwclark/systemd.git
 -------------------------------------------------------------------------------------------------------------------
 tmux		| tmux 						| git@github.com:gpwclark/tmux.git
 -------------------------------------------------------------------------------------------------------------------
+nix		| nix						| git@github.com:gpwclark/nix.git
+-------------------------------------------------------------------------------------------------------------------
+so-lush		| slush scripts for price			| git@github.com/gpwclark/so-lush.git
+-------------------------------------------------------------------------------------------------------------------
 vim		| vim						| git@github.com:gpwclark/vim.git
+-------------------------------------------------------------------------------------------------------------------
+secrets	| shhhh						| git@bitbucket.org:price_clark/secrets.git
 -------------------------------------------------------------------------------------------------------------------
 zsh		| zsh PLUS everything else I want, e.g. inputrc	| git@github.com:gpwclark/zsh.git
 		| , environment initalization scripts, etc.	|
 ===================================================================================================================
-
-! don't forget about `vcsh foreach add -u` and ``vcsh foreach status -uno` # to ignore untracked files
 
 - settuing up a new machine
 1. install mr and vcsh
@@ -86,6 +88,14 @@ mr up
 
 full list:
 $(vcsh list)
+
+99% of what you'll be doing.
+1. vcsh foreach add -u # add changed tracked files
+2. vcsh foreach status -uno` # to ignore untracked files
+3. vcsh foreach diff --cached # only show tracked changes diffs
+3. vcsh foreach commit -am yolo # technically
+3. vcsh foreach push origin main
+
 "
 	(syscall (str $(which vcsh))))
 
