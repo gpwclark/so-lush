@@ -89,12 +89,16 @@ mr up
 full list:
 $(vcsh list)
 
-99% of what you'll be doing.
+90% of what you'll be doing.
 1. vcsh foreach add -u # add changed tracked files
 2. vcsh foreach status -uno` # to ignore untracked files
 3. vcsh foreach diff --cached # only show tracked changes diffs
 3. vcsh foreach commit -am yolo # technically
 3. vcsh foreach push origin main
+
+10%
+1. vcsh enter <name-of-repo>
+2. DO NOT forget to exit afterwards!
 
 "
 	(syscall (str $(which vcsh))))
