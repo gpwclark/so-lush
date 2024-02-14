@@ -96,9 +96,17 @@ $(vcsh list)
 3. vcsh foreach commit -am yolo # technically
 3. vcsh foreach push origin main
 
-10%
+5%
 1. vcsh enter <name-of-repo>
 2. DO NOT forget to exit afterwards!
+
+3%
+# which files have changed
+1. vcsh foreach status -uno
+
+2%
+# which files are being tracked by this branch
+1. vcsh foreach files-on-branch main
 
 "
 	(syscall (str $(which vcsh))))
@@ -333,6 +341,18 @@ secretdir/** filter=git-crypt diff=git-crypt
 
 Section: user-shell"
 	(syscall (str $(which git-crypt))))
+
+	(alias rg
+"
+Looking for string \"search\"
+
+- Exclude a directory from rg search
+	rg -g \"!legacy/**\" \"search\"
+- Match files with specific type
+	rg -t toml \"search\"
+
+Section: user-shell"
+	(syscall (str $(which rg))))
 
 (print-load-time "	after long live steve losh")
 ;;; }}}
