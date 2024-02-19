@@ -344,7 +344,7 @@ Section: user-shell"
 
 	(alias rg
 "
-Looking for string \"search\"
+(Looking for string \"search\")
 
 - Exclude a directory from rg search
 	rg -g \"!legacy/**\" \"search\"
