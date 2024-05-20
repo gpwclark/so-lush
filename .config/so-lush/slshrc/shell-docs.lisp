@@ -325,6 +325,9 @@ Section: common-lisp"
 	- q is for query that are -a (available) named \"git\"
 		#> nix-env -qa git
 
+	-i is for install
+		#> nix-env -irf ~/.config/nix/hiemal.nix
+
 Section: user-shell"
 	(syscall (str $(which nix))))
 
