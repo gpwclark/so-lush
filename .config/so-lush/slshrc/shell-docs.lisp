@@ -16,6 +16,47 @@
 
 (print-load-time "	before long lost documentation for system commands ")
 
+(alias equery
+	"PACAKGE INTROSPECTION
+	cheat sheet: https://wiki.gentoo.org/wiki/Gentoo_Cheat_Sheet
+
+	list installed packages with version number and name of overlay used:
+		`qlist -IRv`
+	what versions are installed?:
+		`equery y webkit-gtk`
+			shows keywords enabled for package but also details versions of said
+			package installed (and all available versions),
+			which repos those versions came from etc.
+		`equery list -po webkit-gtk` # simpler
+		`equery list webkit-gtk
+	Finding the package that a file came from with belongs (b)
+		`equery belongs -e /usr/bin/glxgears`
+	Listing files installed by a package with files (f)
+		`equery files --tree gentoolkit`
+
+
+	OVERLAYS OH MY
+		add overlays to your cache with
+			`eix-remote update`
+		then sync
+			`eix-sync`
+		maybe update?
+			`eix-remote update`
+		maybe quiet sync again?
+			`eix sync -q`
+		list packages installed OR not from the world's overlays
+			`eix -R webkit-gtk`
+	"
+	(syscall (str $(which equery))))
+
+(alias zfs
+	"
+	ls /.zfs # is where all the snapshots are stores
+	- zfs list -t all
+	"
+	(syscall (str $(which wget))))
+
+
 (alias wget
 	"
 	to get a whole site...
@@ -133,6 +174,15 @@ Section: sys-docs" (syscall (str $(which vim))))
 :%s/{/{^M/g
 To get the ^M character, type Ctrl + V and hit Enter
 Section: sys-docs
+
+- how tocopy and paste into vim
+hit :
+in cmd window enter 
+`r cat!`
+
+hit enter once or twice until cursor moves down (i think this is required) 
+and then paste into the now enlarged cmd window.
+hiariously you hit ctrl-d to then write this content into the buffer.
 "
 	(syscall (str $(which vim))))
 
@@ -145,6 +195,14 @@ Section: sys-docs
 	- more initiate: hit space bar (enter visual block highlight text mode)
 	- hit enter to stick in paste buffer
 	- paste normally or with: C-a + ]
+
+- write all tmux scrollback to file
+
+    1.Use prefix + :, then type in capture-pane -S -3000 + Return. (Replace -3000 with however many lines you'd like to save, or with - for all lines.) 
+	2. This copies those lines into a buffer.
+    3. Then, to save the buffer to a file, just use prefix + : again, and type in save-buffer filename.txt + return. (by default it'll save the file in ~/)
+
+
 Section: tmux"
 	(syscall (str $(which tmux))))
 
@@ -356,6 +414,15 @@ Section: user-shell"
 
 Section: user-shell"
 	(syscall (str $(which rg))))
+
+(alias startx
+	"
+	/etc/X11/xorg.conf can be used to hardcode/override wrong stuff
+	https://download.nvidia.com/XFree86/Linux-x86_64/304.137/README/xconfigoptions.html
+	sudo nvidia-xconfig --prime # to generate a dumb /etc/X11/xorg.conf
+	"
+	(syscall (str $(which wget))))
+
 
 (print-load-time "	after long live steve losh")
 ;;; }}}
