@@ -16,6 +16,102 @@
 
 (print-load-time "	before long lost documentation for system commands ")
 
+(def graphics-docs "
+which graphics cards/drivers are being used?
+
+# $ glxinfo | grep -E \"OpenGL vendor|OpenGL renderer\"
+
+
+Just type nvidia-smi in the terminal. Then check for the percentage of usage.
+That will indicate which GPU is in us
+	 ")
+
+(def nvidia graphics-docs nil)
+(def graphics graphics-docs nil)
+(def graphics-doc graphics-docs nil)
+
+(alias gdb "
+       on gentoo, for sys-libs/glibc compile with debug symbols: 
+		https://wiki.gentoo.org/wiki/Debugging
+ " (syscall (str $(which gdb))))
+
+(alias find "
+	 exclude a path, e.g. find rust file not in target
+		 - find . -path ./target -prune -o -iname \"*rs\"
+ " (syscall (str $(which find))))
+
+(def screensaver "
+X.org has some basic screen saver functionality as well as energy saving features. Most likely either or both are responsible for the described behavior.
+
+The settings for both can be viewed and changed with the xset tool (from the x11-xserver-utils package). xset q displays the current settings in the sections Screen Saver and DPMS (Energy Star).
+
+You can disable the screen saver feature with:
+
+xset s off
+The power saving feature can be turned off with
+
+xset -dpms
+With these settings the screen should no longer turn off or blank automatically until you reboot your machine.
+
+If your main concern is that 5 minutes are to short, you can also just raise the limits for that. To enable the screen saver only after 15 minutes (900 seconds) idle time, set the timeout accordingly with
+
+xset s 900
+To turn off the monitor after 20 minutes of idling run
+
+xset dpms 0 0 1200
+The two 0 values disable standby and suspend respectively, while 1200 sets the timeout for off to 20 minutes. (I usually do not use standby or suspend because there seems to be no difference between the three modes on modern TFT-displays.) Setting these values also enables DPMS, so you do not need to explicitly run xset +dpms.
+	 " nil)
+
+(def gentoo "Gentoo!
+     	 ;; Cheat sheet https://wiki.gentoo.org/wiki/Gentoo_Cheat_Sheet
+	 (doc equery) ;; probe system for information about system/packages
+	 (doc emerge) ;; main portage cli tool
+	 (doc eix) ;; a feature rich wrapper for managing custom repos
+	 (doc eselect) ;; manage current configuration of system (eselect [repository|locale|etc] ...,).
+	 (doc gentoo-custom-repos) ;; Manage custom repos
+	 (doc dispatch-conf) ;; Portage utility used to safely and conveniently manage configuration files after package updates.
+	 (man portage) ;; The ❤️ of Gentoo. A glossary of terms and list of files associated with the mighty portage ⚓!
+ " nil)
+
+(def gentoo-custom-repos
+	 "
+	 # Install sanoid & syncoid
+amd64:# echo \"~sys-fs/sanoid-2.2.0\" >> /etc/portage/package.accept_keywords/sys-fs
+arm64:# echo \"~sys-fs/sanoid-2.2.0 **\" >> /etc/portage/package.accept_keywords/sys-fs
+# echo \"~dev-perl/Config-IniFiles-3.0.3::gentoo **\" >> /etc/portage/package.accept_keywords/dev-perl
+amd64 & arm64:# emerge -avu -j 4 eselect-repository
+# eselect repository enable vowstar
+# eix-sync OR emerge --sync #must do!
+# emerge -avu -j 4 sanoid app-admin/sudo
+# or 
+# emerge -avuDN -j 4 media-sound/pamixer::menelkir
+	 "
+	 nil)
+
+
+(alias dispatch-conf
+	"
+	https://wiki.gentoo.org/wiki/Handbook:AMD64/Portage/Tools#dispatch-conf
+
+	interactively update confi changes
+	"
+	(syscall (str $(which dispatch-conf))))
+
+
+(alias eselect
+	"
+	- read the news! very helpful stuff!
+		- eselect news read
+	- setting the locale
+		eselect locale list
+		eselect locale set <X> # where X is some number from `locale list`
+		locale -a # /etc/locale.conf is what ends up changed
+	- enable a new repo
+		eselect repository enable vowstar
+	"
+	(syscall (str $(which eselect))))
+
+
 (alias equery
 	"PACAKGE INTROSPECTION
 	cheat sheet: https://wiki.gentoo.org/wiki/Gentoo_Cheat_Sheet
@@ -33,6 +129,66 @@
 		`equery belongs -e /usr/bin/glxgears`
 	Listing files installed by a package with files (f)
 		`equery files --tree gentoolkit`
+	"
+	(syscall (str $(which equery))))
+
+(alias eix
+	"FULLTEXT:
+To view the list of packages in the world set, along with their available versions, it is possible to use eix:
+	eix --color -c --world | less -R
+
+I was just looking for the very same thing. If you use eix, you are in luck.
+
+From the wiki:
+Adding overlays to the cache
+
+To search not only in the portage tree but all the overlays, add overlays to the cache
+
+root # eix-remote update
+
+and then sync it all:
+
+root # eix-sync
+
+(example from my system)
+
+ $ eix nuvola
+* x11-themes/nuvola
+  Available versions:  1.0-r1^bs
+  Homepage:            http://www.kde-look.org/content/show.php?content=5358
+  Description:         Nuvola SVG icon theme
+
+Hmm that doesn't look like a google music player ... time to add some more sources:
+
+ $ eix-remote update
+<snip>
+Saving to: 'eix-cache.tbz2'
+* Unpacking data
+layman/Armageddon -> Armageddon
+layman/AstroFloyd -> AstroFloyd
+ layman/AzP -> AzP
+<snip>
+
+looks like about 500 sources :)
+
+root # eix-sync -q
+
+Now when searching, if you wish to expand your search, add -R (remote) to search all overlays, installed or not. You will want to sync it with eix-remote from time to time. See man eix.
+
+ $ eix -R nuvola
+* media-sound/nuvolaplayer
+ Available versions:  (~)2.0.1[2] (~)2.0.3[1] {debug}
+ Homepage:            https://launchpad.net/nuvola-player
+ Description:         Cloud music integration for your Linux desktop
+
+* x11-themes/nuvola
+ Available versions:  1.0-r1^bs
+ Homepage:            http://www.kde-look.org/content/show.php?content=5358
+ Description:         Nuvola SVG icon theme
+
+[1] \"sabayon\" layman/sabayon
+[2] \"tante\" layman/tante
+
 
 
 	OVERLAYS OH MY
@@ -44,18 +200,123 @@
 			`eix-remote update`
 		maybe quiet sync again?
 			`eix sync -q`
-		list packages installed OR not from the world's overlays
+		search for packages installed OR not from the world's overlays
 			`eix -R webkit-gtk`
+		list all overlay installed packages on system
+			eix -J
 	"
-	(syscall (str $(which equery))))
+	(syscall (str $(which eix))))
+
+(alias emerge
+	"
+	emerge -s thing-to-search
+	emerge -avuDN -j 5 package # ask verbose update deep newuse, with 5 cores for spawned processes
+	emerge -avuDN -j 5 @world # after updating USE flags or various /etc/portage/make.conf stuff or emerge --sync run this to update/rebuild software
+	emerge --sync # get new stuff!
+	emerge --deselect media-tv/v4l-utils to remove package from world file to then remove from the system when @world is updated. (preferred way to remove packages).
+	# finding files that aren't on your box
+		- do not forget about `pfl`!  Portage File List (PFL) can be used to search for files (or strings) provided by
+		packages that are not currently installed on a given system. This can be useful to find out what package to install
+		given the name of a file from a desired tool. Optionally, the PFL tool can update the online PFL database from the
+		list of locally installed files.
+		e.g.
+		e-file `pamixer`
+	"
+	(syscall (str $(which emerge))))
+
 
 (alias zfs
 	"
+	- [Creating a new zfs partition on some harddrive start to finish.](https://www.howtogeek.com/175159/an-introduction-to-the-z-file-system-zfs-for-linux/)
+		```
+		zfs list # should be no datasets other than maybe your computer's if you're on zfs
+		# optional / i'm not sure make sure the harddrive you want to zfs has no partition table
+		# Let's start by taking three of our hard disks and putting them in a storage pool by running the following command: 
+		sudo zpool create -f geek1 /dev/sdb /dev/sdc /dev/sdd
+		#           ^      ^ ^     ^
+		#           |      | |     |
+		#           |      | |     - the disks we're adding to the pool
+		#           |      | - the name of the partition
+		#           |      | |
+		#     create cmd   - overrides errors e.g. if the disk already has data
+		
+		# verify you can see the pool with
+		df
+		# or
+		zfs list
+		# If you want to see which three disks you selected for your pool, you can run
+		sudo zpool status
+		```
+
+
 	ls /.zfs # is where all the snapshots are stores
 	- zfs list -t all
 	"
-	(syscall (str $(which wget))))
+	(syscall (str $(which zfs))))
 
+
+(alias zpool
+	"
+	zpool status
+	zpool import zbrumal
+	zpool export
+	"
+	(syscall (str $(which zpool))))
+
+(def zfshelp "
+	 (doc zfs)
+	 (doc zpool)
+	 (doc zfshelp)
+- zfs automount
+	+ https://superuser.com/questions/1561274/how-to-i-automatically-mount-a-zfs-pool-on-an-external-drive-automatically-on-bo
+	-Found the instructions in the Archlinux wiki. Since I had ZFS as root on this I actually could skip some of the steps - ZED is already set up on my system.
+
+		zed will populate and automount the pool for me if there's a suitable configuration file. I created an empty file
+
+		touch /etc/zfs/zfs-list.cache/storage
+
+		ZED didn't pick it up and populate it so I gave it a kick by disabling and enabling a pool
+		sudo zfs set canmount=off storage
+		sudo zfs set canmount=on storage
+
+		I rebooted the system and checked to see if its mounted and it was.
+-ZFS broken disk
+	terel ~ # zpool status
+	  pool: zterel
+	 state: DEGRADED
+	status: One or more devices could not be used because the label is missing or
+			invalid.  Sufficient replicas exist for the pool to continue
+			functioning in a degraded state.
+	action: Replace the device using 'zpool replace'.
+	   see: https://openzfs.github.io/openzfs-docs/msg/ZFS-8000-4J
+	  scan: resilvered 250M in 00:00:01 with 0 errors on 
+	config:
+
+		NAME                      STATE     READ WRITE CKSUM
+		zbrumal                   DEGRADED     0     0     0
+		  mirror-0                DEGRADED     0     0     0
+			zbrumal0              ONLINE       0     0     0
+			xxxxxxxxxxxxxxxxxxxx  UNAVAIL      0     0     0  was /dev/mapper/zbrumal1
+	To try to use the drive again as is (perhaps the missing drive was simply no decrypted):
+		# zpool-reopen
+	Format the replacement drive:
+		# fdisk /dev/___
+	Encrypt the partition:
+		# cryptsetup ...
+	Mount the partition decrypted:
+		# cryptsetup open /dev/mapper/zhostX zhostX
+	Replace the unavailable device:
+		# zpool replace zbrumal xxxxxxxxxxxxxxxxxxxx /dev/mapper/zbrumal1
+
+	 " nil)
+
+(alias openssl
+	"
+	simple way to encrypt a file:
+		openssl des3 < youfile.txt > yourfile.txt.des3
+		openssl des3 -d < yourfile.txt.des3 > yourfile.txt.decrypted
+	"
+	(syscall (str $(which openssl))))
 
 (alias wget
 	"
@@ -167,22 +428,26 @@ Section: arch" (syscall (str $(which yay))))
 (alias vi "see doc 'vim'
 Section: sys-docs" (syscall (str $(which vim))))
 
+(def unicodes "
+	 ε - 03b5
+" nil)
+
 (alias vim
 "
+- how to insert unicode characger:
+	Ctrl+q + u then the 4 digit code then enter
+	Ctrl+q + U then the longer code (if longer than digit unicode sumbol) then enter
 - how to replace something with a newline in vim.
-:set magic
-:%s/{/{^M/g
-To get the ^M character, type Ctrl + V and hit Enter
-Section: sys-docs
+		:set magic
+		:%s/{/{^M/g
+		To get the ^M character, type Ctrl + V and hit Enter
+		Section: sys-docs
 
 - how tocopy and paste into vim
-hit :
-in cmd window enter 
-`r cat!`
-
-hit enter once or twice until cursor moves down (i think this is required) 
-and then paste into the now enlarged cmd window.
-hiariously you hit ctrl-d to then write this content into the buffer.
+	hit ':' and in cmd window enter `r cat!`
+	hit enter once or twice until cursor moves down (i think this is required) 
+	and then paste into the now enlarged cmd window.
+	hiariously you hit ctrl-d to then write this content into the buffer.
 "
 	(syscall (str $(which vim))))
 
@@ -262,13 +527,55 @@ KERNEL:
 ALL:
 	#> journalctl --catalog --lines=3000 --pager-end
 FILTERED:
-	#> journalctl --catalog --lines=3000 --pager-end --unit=sshd.service
-	#> systemctl list-units --type=service # to get service
+	- by a service
+		#> journalctl --catalog --lines=3000 --pager-end --unit=sshd.service
+	- or follow
+		#> journalctl -e -u systemd-resolved -f
+	- query list of services
+		#> systemctl list-units --type=service # to get service
+	- change log level by service name
+		#> systemctl service-log-level systemd-resolved debug
 GREP:
 	#> journalctl --catalog --lines=3000 --pager-end --grep \"port\" --priority 7
 
 Section sys-docs"
 	(syscall (str $(which journalctl))))
+
+(def systemd.timer "Systemd timers
+	- Save these files as ~/.config/systemd/user/some-service-name.*
+	- Run this now and after any modifications: systemctl --user daemon-reload
+	- Try out the service (oneshot): systemctl --user start some-service-name
+	- Check logs if something is wrong: journalctl -u --user-unit some-service-name
+	- Start the timer after this user logs in: systemctl --user enable --now some-service-name.timer
+file: some-service-name.service
+```
+[Unit]
+Description=Do some thing
+After=network.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h
+ExecStart=%h/my-service/script.py --some-arg=some-value
+
+[Install]
+WantedBy=default.target
+```
+
+file: some-service-name.timer
+```
+[Unit]
+Description=Run Do some thing every 30 minutes
+
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec=30min
+
+[Install]
+WantedBy=timers.target
+```
+
+ " nil)
 
 (alias ip
 "
@@ -402,6 +709,26 @@ secretdir/** filter=git-crypt diff=git-crypt
 
 Section: user-shell"
 	(syscall (str $(which git-crypt))))
+
+	(alias rustup
+"
+List Installed: 
+	- rustup toolchain list
+Install specific version of toolchain on host:
+	- rustup toolchain install 1.79.0-x86_64-unknown-linux-musl
+List all toolchains:
+	- rustc --print=target-list
+Add new toolchain
+	- rustup target add x86_64-unknown-linux-musl
+check if new update exists:
+	- rustup check
+update current stable:
+	- rustup update stable
+change to nightly toolchain:
+	- rustup default nightly
+
+Section: user-shell"
+	(syscall (str $(which rustup))))
 
 	(alias rg
 "
