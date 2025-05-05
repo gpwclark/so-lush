@@ -65,8 +65,10 @@ The two 0 values disable standby and suspend respectively, while 1200 sets the t
 (def gentoo "Gentoo!
      	 ;; Cheat sheet https://wiki.gentoo.org/wiki/Gentoo_Cheat_Sheet
 	 (doc equery) ;; probe system for information about system/packages
+	 (doc qlist)  ;; list intsalled files
+	 (doc e-file) ;; thru hardwork of `pfl` pkg, search for a file/binary and this will tell you which packages have it.
 	 (doc emerge) ;; main portage cli tool
-	 (doc eix) ;; a feature rich wrapper for managing custom repos
+	 (doc eix)     ;; a feature rich wrapper for managing custom repos
 	 (doc eselect) ;; manage current configuration of system (eselect [repository|locale|etc] ...,).
 	 (doc gentoo-custom-repos) ;; Manage custom repos
 	 (doc dispatch-conf) ;; Portage utility used to safely and conveniently manage configuration files after package updates.
@@ -79,13 +81,26 @@ The two 0 values disable standby and suspend respectively, while 1200 sets the t
 amd64:# echo \"~sys-fs/sanoid-2.2.0\" >> /etc/portage/package.accept_keywords/sys-fs
 arm64:# echo \"~sys-fs/sanoid-2.2.0 **\" >> /etc/portage/package.accept_keywords/sys-fs
 # echo \"~dev-perl/Config-IniFiles-3.0.3::gentoo **\" >> /etc/portage/package.accept_keywords/dev-perl
+
+// there are some repositoryies that are set up through... I think it is eix, but you can easily make your own 
+// see below
+
+// prereq
 amd64 & arm64:# emerge -avu -j 4 eselect-repository
+// actual commands
 # eselect repository enable vowstar
 # eix-sync OR emerge --sync #must do!
 # emerge -avu -j 4 sanoid app-admin/sudo
 # or 
 # emerge -avuDN -j 4 media-sound/pamixer::menelkir
-	 "
+
+// # to add a brand new repository
+1. sudo eselect repository add pingwho-overlay git https://ftp.pingwho.org/pub/gentoo/ftp/overlay/pingwho-overlay
+2. which updates the file /etc/portage/repos.conf/eselect-repo.conf w/ specific information that is editable.
+3. sudo emaint sync -r pingwho-overlay // to sync w/ that ebuild repo
+4. then sync w/ it: eix-update
+5. then search for packages in the new overlay: eix -R some package
+ "
 	 nil)
 
 
@@ -93,7 +108,7 @@ amd64 & arm64:# emerge -avu -j 4 eselect-repository
 	"
 	https://wiki.gentoo.org/wiki/Handbook:AMD64/Portage/Tools#dispatch-conf
 
-	interactively update confi changes
+	interactively update config changes
 	"
 	(syscall (str $(which dispatch-conf))))
 
@@ -108,8 +123,14 @@ amd64 & arm64:# emerge -avu -j 4 eselect-repository
 		locale -a # /etc/locale.conf is what ends up changed
 	- enable a new repo
 		eselect repository enable vowstar
+	- font config,
+		eselect fontconfig
 	"
 	(syscall (str $(which eselect))))
+
+(alias qlist
+   "qlist -IRv list installed packages with version number and name of overlay used:"
+	   (syscall (str $(which qlist)))
 
 
 (alias equery
@@ -263,10 +284,49 @@ Now when searching, if you wish to expand your search, add -R (remote) to search
 	"
 	(syscall (str $(which zpool))))
 
+(alias syncoid
+	"
+	source: https://klarasystems.com/articles/improving-replication-security-with-openzfs-delegation/
+	
+	1. remote backup 1: on brumal, backup frostig
+	================================
+		syncoid likes pulls, so we want this to work:
+		```
+		brumal$ syncoid --delete-target-snapshots --no-sync-snap --no-privilege-elevation frostig:zfrostig/root zbrumal/backup/zfrostig/root
+		```
+		which reqiures some permissions namely. brumal, the receiver needs rollback permissions
+		brumal# zfs allow price rollback zbrumal/backup/zfrostig
+		frostig# zfs allow price hold zfrostig/root
+
+	2. remote backup 2: on frostig, backup brumal by pulling files from brumal
+	================================
+		```
+		frostig$ syncoid --delete-target-snapshots --no-sync-snap --no-privilege-elevation brumal:zbrumal/root zfrostig/backup/zbrumal/root
+		```
+	3. the two local backups:
+		```
+		# backups the brumal snapshots that are on frostig
+		frostig$ syncoid --delete-target-snapshots --no-sync-snap --no-privilege-elevation zfrostig/backup/zbrumal/root zbackup/zbrumal/root
+		# backups the frostig snapshots
+		frostig$ syncoid --delete-target-snapshots --no-sync-snap --no-privilege-elevation zfrostig/root zbackup/zfrostig/root
+		```
+	
+	"
+	(syscall (str $(which syncoid))))
+
+(alias sanoid
+	"
+	this does snapshotting, to set it up use:
+	https://github.com/jimsalterjrs/sanoid/blob/master/INSTALL.md
+	"
+	(syscall (str $(which sanoid))))
+
 (def zfshelp "
 	 (doc zfs)
 	 (doc zpool)
 	 (doc zfshelp)
+	 (doc syncoid)
+	 (doc sanoid)
 - zfs automount
 	+ https://superuser.com/questions/1561274/how-to-i-automatically-mount-a-zfs-pool-on-an-external-drive-automatically-on-bo
 	-Found the instructions in the Archlinux wiki. Since I had ZFS as root on this I actually could skip some of the steps - ZED is already set up on my system.
@@ -326,7 +386,13 @@ Now when searching, if you wish to expand your search, add -R (remote) to search
 	* --convert-links – convert all the links (also to stuff like CSS stylesheets) to relative, so it will be suitable for offline viewing.
 	* --adjust-extension – Adds suitable extensions to filenames (html or css) depending on their content-type.
 	* --page-requisites – Download things like CSS style-sheets and images required to properly display the page offline.
-	* --no-parent – When recursing do not ascend to the parent directory. It useful for restricting the download to only a portion of the site.
+	* --level=inf: No limit on recursion depth
+	* --page-requisites: Get all resources needed to display pages properly
+	* --html-extension: Save files with .html extension
+	* --convert-links: Convert links to work locally
+	* --domains: Stay within the provided domain
+	* --no-parent: Don't go to parent directories
+	* --no-clobber: Don't overwrite existing files
 	"
 	(syscall (str $(which wget))))
 
@@ -435,7 +501,7 @@ Section: sys-docs" (syscall (str $(which vim))))
 (alias vim
 "
 - how to insert unicode characger:
-	Ctrl+q + u then the 4 digit code then enter
+	Ctrl+q + u then the 4 digit code then enter (e.g. 03B5 for ε)
 	Ctrl+q + U then the longer code (if longer than digit unicode sumbol) then enter
 - how to replace something with a newline in vim.
 		:set magic
@@ -579,6 +645,20 @@ WantedBy=timers.target
 
 (alias ip
 "
+3. [Temporary Static IP via ip](jetbrains.com/help/rust/rust-switch-debuggers-and-renderers.html)
+
+$ ip address flush dev eth1
+$ ip route flush dev eth1
+$ ip address add 192.168.6.66/24 brd + dev eth1
+$ ip route add 192.168.6.1 dev eth1
+$ ip route add default via 192.168.6.1 dev eth1
+$ ip address show dev eth1
+[...]
+    inet 192.168.6.66/24 brd 192.168.6.255 scope global eth1
+[...]
+Copy
+After flushing all addresses and routes from eth1, we add a new static address and gateway. Next, we verify the settings by confirming that dynamic is no longer present in the interface characteristics. However, a system reboot now would wipe our network setup and restore the IP to what DHCP provides.
+
 addr add - Add an address
 	- Add address 192.168.1.1 with netmask 24 to device em1
 	`ip addr add 192.168.1.1/24 dev em1`
