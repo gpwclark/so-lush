@@ -75,6 +75,14 @@ The two 0 values disable standby and suspend respectively, while 1200 sets the t
 	 (man portage) ;; The ❤️ of Gentoo. A glossary of terms and list of files associated with the mighty portage ⚓!
  " nil)
 
+(def systemd "Systemd
+     	 ;; Cheat sheet https://wiki.gentoo.org/wiki/Gentoo_Cheat_Sheet
+	 (doc systemctl) ;; control services
+	 (doc journalctl)  ;; view logs
+	 (doc systemd-analyze) ;; some niche useful commands
+	 (doc systemctl-user) ;; notes on doing things at the user level
+ " nil)
+
 (def gentoo-custom-repos
 	 "
 	 # Install sanoid & syncoid
@@ -304,12 +312,76 @@ Now when searching, if you wish to expand your search, add -R (remote) to search
 		frostig$ syncoid --delete-target-snapshots --no-sync-snap --no-privilege-elevation brumal:zbrumal/root zfrostig/backup/zbrumal/root
 		```
 	3. the two local backups:
+	=========================
 		```
 		# backups the brumal snapshots that are on frostig
 		frostig$ syncoid --delete-target-snapshots --no-sync-snap --no-privilege-elevation zfrostig/backup/zbrumal/root zbackup/zbrumal/root
 		# backups the frostig snapshots
 		frostig$ syncoid --delete-target-snapshots --no-sync-snap --no-privilege-elevation zfrostig/root zbackup/zfrostig/root
 		```
+	4. systemd timers for brumal:
+	=============================
+		- brumal is responsible for remote backups of frostig, this means it occosionally wakes up to pull files from frostig:
+		`syncoid --delete-target-snapshots --no-sync-snap --no-privilege-elevation frostig:zfrostig/root zbrumal/backup/zfrostig/root`
+		```file:~/.config/systemd/user/syncoid.service
+		[Unit]
+		Description=Backup ZFS Snapshots of frostig
+
+		[Service]
+		Environment=TZ=UTC
+		Type=oneshot
+		ExecStart=/bin/syncoid --delete-target-snapshots --no-sync-snap --no-privilege-elevation frostig:zfrostig/root zbrumal/backup/zfrostig/root
+		```
+		```file:~/.config/systemd/user/syncoid.timer
+		[Unit]
+		Description=Run Syncoid Every 59 Minutes
+
+		[Timer]
+		OnCalendar=*:0/59
+		Persistent=true
+
+		[Install]
+		WantedBy=timers.target
+
+		```
+		# to enable
+		$systemctl --user enable syncoid.timer
+		$systemctl --user start syncoid.timer
+		# to monitor 
+		$journalctl --user -e -f
+		
+	5. systemd timers for frostig:
+	=============================
+		```file:~/.config/systemd/user/syncoid.service
+		[Unit]
+		Description=Backup ZFS Snapshots of brumal and brumal/zfrostig roots to zbackup
+
+		[Service]
+		Environment=TZ=UTC
+		Type=oneshot
+		ExecStart=/bin/syncoid --delete-target-snapshots --no-sync-snap --no-privilege-elevation brumal:zbrumal/root zfrostig/backup/zbrumal/root
+		ExecStart=/bin/syncoid --delete-target-snapshots --no-sync-snap --no-privilege-elevation zfrostig/root zbackup/zfrostig/root
+		ExecStart=/bin/syncoid --delete-target-snapshots --no-sync-snap --no-privilege-elevation zfrostig/backup/zbrumal/root zbackup/zbrumal/root
+		```
+		```file:~/.config/systemd/user/syncoid.timer
+		[Unit]
+		Description=Run Syncoid Every 59 Minutes
+
+		[Timer]
+		OnCalendar=*:0/59
+		Persistent=true
+
+		[Install]
+		WantedBy=timers.target
+		```
+	
+
+	TROUBLESHOOTING SUDO-less REMOTE:
+	================
+	- permissions for sending (computer being backed up) might be needed on the remote:
+		remote$ sudo zfs allow $USER send zremote/root
+	- permissions for  might be needed on the remote:
+		local$ sudo zfs allow $USER create,mount,receive,destroy zlocal/backup
 	
 	"
 	(syscall (str $(which syncoid))))
@@ -318,6 +390,28 @@ Now when searching, if you wish to expand your search, add -R (remote) to search
 	"
 	this does snapshotting, to set it up use:
 	https://github.com/jimsalterjrs/sanoid/blob/master/INSTALL.md
+	```file:/usr/lib/systemd/system/sanoid.timer
+	[Unit]
+	Description=Run Sanoid Every 15 Minutes
+
+	[Timer]
+	OnCalendar=*:0/15
+	Persistent=true
+
+	[Install]
+	WantedBy=timers.target
+	```
+	sudo systemctl enable sanoid.timer
+
+	```file:/etc/sanoid/sanoid.conf
+	# you can also handle datasets recursively in an atomic way without the possibility to override settings for child datasets.
+       [zlocal/root]
+       frequently = 32
+       hourly = 36
+       daily = 60
+       monthly = 24
+       yearly = 10
+	```
 	"
 	(syscall (str $(which sanoid))))
 
@@ -536,6 +630,16 @@ Section: sys-docs" (syscall (str $(which vim))))
 
 Section: tmux"
 	(syscall (str $(which tmux))))
+
+(alias systemd-analyze
+"to see where systemd unit/timer files are allowed to go:
+systemd-analyze --user unit-paths"
+	(syscall (str $(which systemd-analyze))))
+
+(def systemctl-user " all systemctl commands can be given the --user flag but they need the following command
+     to be run as sudo so that all user-level services are started properly:
+sudo loginctl enable-linger $USER
+" nil)
 
 (alias journalctl
 "GENERAL KNOWLEDGE:
