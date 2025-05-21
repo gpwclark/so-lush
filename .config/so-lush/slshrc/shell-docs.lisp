@@ -472,6 +472,14 @@ Now when searching, if you wish to expand your search, add -R (remote) to search
 	"
 	(syscall (str $(which openssl))))
 
+(alias flox
+	"
+	https://flox.dev/docs/tutorials/creating-environments/
+	https://etorreborre.blog/why-you-should-flox-every-day
+	https://flox.dev/blog/extending-flox-with-nix-flakes/
+	"
+	(syscall (str $(which flox))))
+
 (alias wget
 	"
 	to get a whole site...
@@ -594,20 +602,26 @@ Section: sys-docs" (syscall (str $(which vim))))
 
 (alias vim
 "
-- how to insert unicode characger:
+- how to insert unicode character:
 	Ctrl+q + u then the 4 digit code then enter (e.g. 03B5 for ε)
 	Ctrl+q + U then the longer code (if longer than digit unicode sumbol) then enter
-- how to replace something with a newline in vim.
+	- how to replace something with a newline in vim.
 		:set magic
 		:%s/{/{^M/g
 		To get the ^M character, type Ctrl + V and hit Enter
 		Section: sys-docs
 
-- how tocopy and paste into vim
-	hit ':' and in cmd window enter `r cat!`
-	hit enter once or twice until cursor moves down (i think this is required) 
-	and then paste into the now enlarged cmd window.
-	hiariously you hit ctrl-d to then write this content into the buffer.
+		- how tocopy and paste into vim
+			hit ':' and in cmd window enter `r cat!`
+			hit enter once or twice until cursor moves down (i think this is required) 
+			and then paste into the now enlarged cmd window.
+			hilariously you hit ctrl-d to then write this content into the buffer.
+
+		- negative lookahead, e.g. find string abc that is NOT followed by defg:
+			/abc \(defg\)\@!
+			for more info: :help \@!
+
+Section: sys-docs
 "
 	(syscall (str $(which vim))))
 
@@ -868,6 +882,7 @@ Section: common-lisp"
 
 	(alias nix
 "Explanation of nix commands:
+	help: https://checkoway.net/musings/nix/
 
 	- q is for query that are --installed
 		#> nix-env -q --installed
@@ -879,6 +894,16 @@ Section: common-lisp"
 
 Section: user-shell"
 	(syscall (str $(which nix))))
+
+(alias git
+"-apply patch from commit(s):
+	- git format-patch -<n> <rev>
+	- git format-patch -1 HEAD
+	-1 is number of commits, so this is 1 starting at head.
+
+	to apply: git am < file.patch
+"
+ (syscall (str ($which git))))
 
 	(alias git-crypt
 "good practice to list which files are encrypted `git-crypt status -e` 

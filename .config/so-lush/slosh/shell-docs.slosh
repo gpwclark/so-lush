@@ -1,0 +1,41 @@
+(with-ns shell-docs
+	#%
+	Usage: (vim [filename])
+
+	- how to replace something with a newline in vim.
+	:set magic
+	:%s/\{/\{^M/g
+	To get the ^M character, type Ctrl + V and hit Enter
+	- negative lookahead, e.g. find string abc that is NOT followed by defg:
+	/abc \(defg\)\@!
+	for more info: :help \@!
+
+	Section: shell-docs
+	%#
+	(def vim #f)
+	$(alias vim=vim)
+
+;;	#%
+;;	Sample command
+;;	%#
+;;	(def cmd #f)
+;;	$(alias cmd=cmd)
+
+	#%
+	Usage: (flox ...)
+
+	flox init
+	flox edit
+	flox install
+
+	https://flox.dev/docs/tutorials/creating-environments/
+	https://etorreborre.blog/why-you-should-flox-every-day
+	https://flox.dev/blog/extending-flox-with-nix-flakes/
+
+	Section: tools
+	%#
+	(def flox #f)
+	$(alias flox=flox)
+) ;; end ns
+
+
