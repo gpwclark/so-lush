@@ -36,6 +36,17 @@
 	%#
 	(def flox #f)
 	$(alias flox=flox)
+
+	#%
+	To temporarily access stuff on your local network:
+		ip route del <yoursubnet/mask> dev tailscale0 table 52
+	e.g.: ip route del 192.168.1.1/16 dev tailscale0 table 52
+
+	Section: tools
+	%#
+	(def flox #f)
+	$(alias flox=flox)
+
 ) ;; end ns
 
 

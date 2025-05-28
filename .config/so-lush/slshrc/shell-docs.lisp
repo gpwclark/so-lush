@@ -256,6 +256,20 @@ Now when searching, if you wish to expand your search, add -R (remote) to search
 
 (alias zfs
 	"
+	- check free space
+		`zpool list`
+	- listing snapshots
+		- ls /.zfs # is where all the snapshots are stores
+		- zfs list -t all
+	- create a dataset (specify a mountpoint for sanity reasons)
+		+ zfs create -o mountpoint=/mnt/hdd -o canmount=noauto zhdd/root
+	- mount a dataset
+		+ zfs mount zhdd/root
+	- check mountpoint(s)
+		+     for all pools | 		      one dataset | more specific datasets
+		+ zfs get mountpont | zfs get mountppoint -r zhdd |  zfs get mountppoint -r zhdd/root
+	- auto importing datasets on startup (for zpool zdata) store in a cache file on the boot (unencrypted) partition.
+		+ `zpool set cachefile=/etc/zfs/zpool.cache zdata`
 	- [Creating a new zfs partition on some harddrive start to finish.](https://www.howtogeek.com/175159/an-introduction-to-the-z-file-system-zfs-for-linux/)
 		```
 		zfs list # should be no datasets other than maybe your computer's if you're on zfs
@@ -276,10 +290,6 @@ Now when searching, if you wish to expand your search, add -R (remote) to search
 		# If you want to see which three disks you selected for your pool, you can run
 		sudo zpool status
 		```
-
-
-	ls /.zfs # is where all the snapshots are stores
-	- zfs list -t all
 	"
 	(syscall (str $(which zfs))))
 
