@@ -431,6 +431,7 @@ Now when searching, if you wish to expand your search, add -R (remote) to search
 	 (doc zfshelp)
 	 (doc syncoid)
 	 (doc sanoid)
+	 (doc zfs-snapshots)
 - zfs automount
 	+ https://superuser.com/questions/1561274/how-to-i-automatically-mount-a-zfs-pool-on-an-external-drive-automatically-on-bo
 	-Found the instructions in the Archlinux wiki. Since I had ZFS as root on this I actually could skip some of the steps - ZED is already set up on my system.
@@ -473,6 +474,11 @@ Now when searching, if you wish to expand your search, add -R (remote) to search
 		# zpool replace zbrumal xxxxxxxxxxxxxxxxxxxx /dev/mapper/zbrumal1
 
 	 " nil)
+
+(def zfs-snapshot "
+	 # to list snapshots
+		 - zfs list -r -t snapshot -o name,creation zbackup
+	" nil)
 
 (alias openssl
 	"
