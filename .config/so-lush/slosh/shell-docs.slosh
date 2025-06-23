@@ -9,6 +9,7 @@
 	- negative lookahead, e.g. find string abc that is NOT followed by defg:
 	/abc \(defg\)\@!
 	for more info: :help \@!
+	- to write a file w/o a newline do :set binary && :set noeol
 
 	Section: shell-docs
 	%#
