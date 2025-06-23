@@ -25,6 +25,8 @@
 	#%
 	Usage: (flox ...)
 
+	Installed w/ nix in cmd `nix profile install --extra-experimental-features "nix-command flakes" github:flox/flox`
+
 	flox init
 	flox edit
 	flox install
@@ -47,7 +49,8 @@
 	%#
 	(def flox #f)
 	$(alias flox=flox)
-
 ) ;; end ns
 
+(load "zfs-docs.slosh")
+(import zfs-docs)
 

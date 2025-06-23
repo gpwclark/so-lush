@@ -1,0 +1,57 @@
+(with-ns zfs-docs
+
+	#%
+	Usage: (zfs-scrub ...)
+
+	- For 1x a week zfs scrub.
+	/etc/systemd/system/zfs-scrub.service
+	```
+	[Unit]
+	Description=ZFS Pool Scrub
+	After=multi-user.target
+
+	[Service]
+	Type=oneshot
+	ExecStart=/usr/sbin/zpool scrub zbackup
+	User=root
+	```
+
+	/etc/systemd/system/zfs-scrub.timer
+	```
+	[Unit]
+	Description=Weekly ZFS Scrub Timer
+	Requires=zfs-scrub.service
+
+	[Timer]
+	OnCalendar=Sun *-*-* 02:00:00
+	Persistent=true
+
+	[Install]
+	WantedBy=timers.target
+	```
+	- To make it work with  pushover or another service, uncomment and configure the approparite sections in:
+	`/etc/zfs/zed.d/zed.rc`
+	if you want notifications for a successful operation (default is to *only* report failures) set ZED_NOTIFY_VERBOSE=1
+	- to load:
+	```
+	sudo systemctl daemon-reload
+	sudo systemctl enable zfs-scrub.timer
+	sudo systemctl start zfs-scrub.timer
+	```
+	- to verify
+	```
+	sudo systemctl list-timers zfs-scrub.timer
+	sudo journalctl -u zfs-scrub.service
+	zpool status -v
+	```
+
+
+
+	Section: zfs
+	%#
+	(def zfs-scrub #f)
+
+	$(alias zfs-scrub="zfs scrub")
+) ;; end ns
+
+
