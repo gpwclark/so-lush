@@ -1,56 +1,271 @@
 (with-ns shell-docs
-	#%
-	Usage: (vim [filename])
 
-	- how to replace something with a newline in vim.
-	:set magic
-	:%s/\{/\{^M/g
-	To get the ^M character, type Ctrl + V and hit Enter
-	- negative lookahead, e.g. find string abc that is NOT followed by defg:
-	/abc \(defg\)\@!
-	for more info: :help \@!
-	- to write a file w/o a newline do :set binary && :set noeol
+#%
+Usage: (vim [filename])
 
-	Section: shell-docs
-	%#
-	(def vim #f)
-	$(alias vim=vim)
+- how to replace something with a newline in vim.
+:set magic
+:%s/\{/\{^M/g
+To get the ^M character, type Ctrl + V and hit Enter
 
-;;	#%
-;;	Sample command
-;;	%#
-;;	(def cmd #f)
-;;	$(alias cmd=cmd)
+- negative lookahead, e.g. find string abc that is NOT followed by defg:
+/abc \(defg\)\@!
+for more info: :help \@!
 
-	#%
-	Usage: (flox ...)
+- to write a file w/o a newline do :set binary && :set noeol
 
-	Installed w/ nix in cmd `nix profile install --extra-experimental-features "nix-command flakes" github:flox/flox`
+- how to insert unicode character:
+	Ctrl+q + u then the 4 digit code then enter (e.g. 03B5 for ε)
+	Ctrl+q + U then the longer code (if longer than digit unicode sumbol) then enter
 
-	flox init
-	flox edit
-	flox install
+	See `shell-docs::unicodes` for some commonly used symbols?
 
-	https://flox.dev/docs/tutorials/creating-environments/
-	https://etorreborre.blog/why-you-should-flox-every-day
-	https://flox.dev/blog/extending-flox-with-nix-flakes/
 
-	Section: tools
-	%#
-	(def flox #f)
-	$(alias flox=flox)
+- how tocopy and paste into vim
+	hit ':' and in cmd window enter `r cat!`
+	hit enter once or twice until cursor moves down (i think this is required)
+	and then paste into the now enlarged cmd window.
+	hilariously you hit ctrl-d to then write this content into the buffer.
 
-	#%
-	To temporarily access stuff on your local network:
-		ip route del <yoursubnet/mask> dev tailscale0 table 52
-	e.g.: ip route del 192.168.1.1/16 dev tailscale0 table 52
+Section: tools
+%#
+(def vim #f)
+$(alias vim=vim)
 
-	Section: tools
-	%#
-	(def flox #f)
-	$(alias flox=flox)
+#%
+Usage: (flox ...)
+
+installation
+============
+0. flox /etc/nix/nix.conf
+	```
+	extra-trusted-substituters = https://cache.flox.dev
+	extra-trusted-public-keys = flox-cache-public-1:7F4OyH7ZCnFhcze3fJdfyXYLQw/aV7GEed86nQ7IsOs=
+	```
+1. Install w/ 
+	`nix profile install --extra-experimental-features "nix-command flakes" github:flox/flox`
+2. Upgrade /w 
+	`nix profile upgrade --experimental-features "nix-command flakes" --accept-flake-config '.*flox'`
+	&&
+		`nix flake update`
+	b/c nix does not always update transitive dependencies.
+
+
+use
+===
+flox init
+flox edit
+flox install
+
+more
+====
+https://flox.dev/docs/tutorials/creating-environments/
+https://etorreborre.blog/why-you-should-flox-every-day
+https://flox.dev/blog/extending-flox-with-nix-flakes/
+
+Section: tools
+
+%#
+(def flox #f)
+$(alias flox=flox)
+
+#%
+To temporarily access stuff on your local network:
+	ip route del <yoursubnet/mask> dev tailscale0 table 52
+e.g.: ip route del 192.168.1.1/16 dev tailscale0 table 52
+
+Section: tools
+%#
+(def flox #f)
+$(alias flox=flox)
+
+#%
+	 exclude a path, e.g. find rust file not in target
+		 - find . -path ./target -prune -o -iname \"*rs\"
+%#
+(def find #f)
+$(alias find=find)
+
+#%
+	simple way to encrypt a file:
+		openssl des3 < youfile.txt > yourfile.txt.des3
+		openssl des3 -d < yourfile.txt.des3 > yourfile.txt.decrypted
+
+Section: tools
+%#
+(def openssl #f)
+$(alias openssl=openssl)
+
+#%
+	to get a whole site...
+	wget --mirror --convert-links --adjust-extension --page-requisites --no-parent https://doc.rust-lang.org/book/
+	* --mirror – Makes (among other things) the download recursive.
+	* --convert-links – convert all the links (also to stuff like CSS stylesheets) to relative, so it will be suitable for offline viewing.
+	* --adjust-extension – Adds suitable extensions to filenames (html or css) depending on their content-type.
+	* --page-requisites – Download things like CSS style-sheets and images required to properly display the page offline.
+	* --level=inf: No limit on recursion depth
+	* --page-requisites: Get all resources needed to display pages properly
+	* --html-extension: Save files with .html extension
+	* --convert-links: Convert links to work locally
+	* --domains: Stay within the provided domain
+	* --no-parent: Don't go to parent directories
+	* --no-clobber: Don't overwrite existing files
+
+Section: tools
+%#
+(def wget #f)
+$(alias wget=wget)
+
+#%
+repo		| description					| remote
+===================================================================================================================
+clcli		| common lisp cli programs 			| git@github.com:gpwclark/clcli.git
+-------------------------------------------------------------------------------------------------------------------
+i3		| i3						| git@github.com:gpwclark/i3.git
+-------------------------------------------------------------------------------------------------------------------
+mr		| public - my repos manages			| git@github.com:gpwclark/vcsh_mr.git
+		| which repos are active			|
+-------------------------------------------------------------------------------------------------------------------
+share		| anything private / notes/ etc. 		| git@bitbucket.org:price_clark/share-config.git
+-------------------------------------------------------------------------------------------------------------------
+spacemacs	| emacs / doom config				| git@github.com:gpwclark/spacemacs.git
+-------------------------------------------------------------------------------------------------------------------
+systemd		| user space systemd stuffz			| git@github.com:gpwclark/systemd.git
+-------------------------------------------------------------------------------------------------------------------
+tmux		| tmux 						| git@github.com:gpwclark/tmux.git
+-------------------------------------------------------------------------------------------------------------------
+nix		| nix						| git@github.com:gpwclark/nix.git
+-------------------------------------------------------------------------------------------------------------------
+so-lush		| slush scripts for price			| git@github.com/gpwclark/so-lush.git
+-------------------------------------------------------------------------------------------------------------------
+vim		| vim						| git@github.com:gpwclark/vim.git
+-------------------------------------------------------------------------------------------------------------------
+secrets	| shhhh						| git@bitbucket.org:price_clark/secrets.git
+-------------------------------------------------------------------------------------------------------------------
+zsh		| zsh PLUS everything else I want, e.g. inputrc	| git@github.com:gpwclark/zsh.git
+		| , environment initalization scripts, etc.	|
+===================================================================================================================
+
+- settuing up a new machine
+1. install mr and vcsh
+2.
+vcsh clone git@github.com:gpwclark/vcsh_mr.git
+```
+3. Edit any desired configuration in .mrconfig file and the config directory in ~/.config/mr/
+```
+mr up
+```
+4. done!
+
+
+full list:
+$(vcsh list)
+
+90% of what you'll be doing.
+1. vcsh foreach add -u # add changed tracked files
+2. vcsh foreach status -uno` # to ignore untracked files
+3. vcsh foreach diff --cached # only show tracked changes diffs
+3. vcsh foreach commit -am yolo # technically
+3. vcsh foreach push origin main
+
+5%
+1. vcsh enter <name-of-repo>
+2. DO NOT forget to exit afterwards!
+
+3%
+# which files have changed
+1. vcsh foreach status -uno
+
+2%
+# which files are being tracked by this branch
+1. vcsh foreach files-on-branch main
+
+Section: tools
+%#
+(def vcsh #f)
+$(alias vcsh=vcsh)
+
+#%
+	 ε - 03b5
+
+Section: info
+%#
+(def unicodes nil)
+
+#%
+List of things no one can remember:
+- change cwd of session
+	- C-a + : then input attach-session -t . -c new-cwd
+- copy and paste
+	- initiate: C-a + [
+	- more initiate: hit space bar (enter visual block highlight text mode)
+	- hit enter to stick in paste buffer
+	- paste normally or with: C-a + ]
+
+- write all tmux scrollback to file
+
+    1.Use prefix + :, then type in capture-pane -S -3000 + Return. (Replace -3000 with however many lines you'd like to save, or with - for all lines.) 
+	2. This copies those lines into a buffer.
+    3. Then, to save the buffer to a file, just use prefix + : again, and type in save-buffer filename.txt + return. (by default it'll save the file in ~/)
+
+
+Section: tools
+%#
+(def tmux #f)
+$(alias tmux=tmux)
+
+#%
+-apply patch from commit(s):
+	- git format-patch -<n> <rev>
+	- git format-patch -1 HEAD
+	-1 is number of commits, so this is 1 starting at head.
+
+	to apply: git am < file.patch
+
+Section: tools
+%#
+(def git #f)
+$(alias git=git)
+
+#%
+good practice to list which files are encrypted `git-crypt status -e`
+based on .gitattributes files
+that look like:
+
+===
+secrets.txt filter=git-crypt diff=git-crypt
+*.key filter=git-crypt diff=git-crypt
+secretdir/** filter=git-crypt diff=git-crypt
+===
+
+Section: tools
+%#
+(def git-crypt #f)
+$(alias git-crypt=git-crypt)
+
+#%
+(Looking for string \"search\")
+
+- Exclude a directory from rg search
+	rg -g \"!legacy/**\" \"search\"
+- Match files with specific type
+	rg -t toml \"search\"
+
+Section: tools
+%#
+(def rg #f)
+$(alias rg=rg)
+
 ) ;; end ns
 
 (load "zfs-docs.slosh")
 (import zfs-docs)
 
+(load "linux-docs.slosh")
+(import linux-docs)
+
+(load "gentoo-docs.slosh")
+(import gentoo-docs)
+
+(load "rust-docs.slosh")
+(import rust-docs)

@@ -1,0 +1,24 @@
+(with-ns rust-docs
+
+#%
+List Installed:
+	- rustup toolchain list
+Install specific version of toolchain on host:
+	- rustup toolchain install 1.79.0-x86_64-unknown-linux-musl
+List all toolchains:
+	- rustc --print=target-list
+Add new toolchain
+	- rustup target add x86_64-unknown-linux-musl
+check if new update exists:
+	- rustup check
+update current stable:
+	- rustup update stable
+change to nightly toolchain:
+	- rustup default nightly
+
+Section: user-shell
+%#
+(def rustup #f)
+$(alias rustup=rustup)
+
+) ;; end ns

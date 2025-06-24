@@ -1,57 +1,292 @@
 (with-ns zfs-docs
 
-	#%
-	Usage: (zfs-scrub ...)
+#%
+Usage: (zfs-scrub ...)
 
-	- For 1x a week zfs scrub.
-	/etc/systemd/system/zfs-scrub.service
+- For 1x a week zfs scrub.
+/etc/systemd/system/zfs-scrub.service
+```
+[Unit]
+Description=ZFS Pool Scrub
+After=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/zpool scrub zbackup
+User=root
+```
+
+/etc/systemd/system/zfs-scrub.timer
+```
+[Unit]
+Description=Weekly ZFS Scrub Timer
+Requires=zfs-scrub.service
+
+[Timer]
+OnCalendar=Sun *-*-* 02:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+```
+- To make it work with  pushover or another service, uncomment and configure the approparite sections in:
+`/etc/zfs/zed.d/zed.rc`
+if you want notifications for a successful operation (default is to *only* report failures) set ZED_NOTIFY_VERBOSE=1 - to load: ``` sudo systemctl daemon-reload
+sudo systemctl enable zfs-scrub.timer
+sudo systemctl start zfs-scrub.timer
+```
+- to verify
+```
+sudo systemctl list-timers zfs-scrub.timer
+sudo journalctl -u zfs-scrub.service
+zpool status -v
+```
+
+
+
+Section: zfs
+%#
+(def zfs-scrub #f)
+
+$(alias zfs-scrub="zfs scrub")
+
+#%
+- check free space
+	`zpool list`
+- listing snapshots
+	- ls /.zfs # is where all the snapshots are stores
+	- zfs list -t all
+- create a dataset (specify a mountpoint for sanity reasons)
+	+ zfs create -o mountpoint=/mnt/hdd -o canmount=noauto zhdd/root
+- mount a dataset
+	+ zfs mount zhdd/root
+- check mountpoint(s)
+	+     for all pools | 		      one dataset | more specific datasets
+	+ zfs get mountpont | zfs get mountppoint -r zhdd |  zfs get mountppoint -r zhdd/root
+- auto importing datasets on startup (for zpool zdata) store in a cache file on the boot (unencrypted) partition.
+	+ `zpool set cachefile=/etc/zfs/zpool.cache zdata`
+- [Creating a new zfs partition on some harddrive start to finish.](https://www.howtogeek.com/175159/an-introduction-to-the-z-file-system-zfs-for-linux/)
 	```
+	zfs list # should be no datasets other than maybe your computer's if you're on zfs
+	# optional / i'm not sure make sure the harddrive you want to zfs has no partition table
+	# Let's start by taking three of our hard disks and putting them in a storage pool by running the following command:
+	sudo zpool create -f geek1 /dev/sdb /dev/sdc /dev/sdd
+	#           ^      ^ ^     ^
+	#           |      | |     |
+	#           |      | |     - the disks we're adding to the pool
+	#           |      | - the name of the partition
+	#           |      | |
+	#     create cmd   - overrides errors e.g. if the disk already has data
+
+	# verify you can see the pool with
+	df
+	# or
+	zfs list
+	# If you want to see which three disks you selected for your pool, you can run
+	sudo zpool status
+	```
+
+Section: zfs
+%#
+(def zfs #f)
+$(alias zfs=zfs)
+
+#%
+	zpool status
+	zpool import zbrumal
+	zpool export
+
+Section: zfs
+%#
+(def zpool #f)
+$(alias zpool=zpool)
+
+#%
+source: https://klarasystems.com/articles/improving-replication-security-with-openzfs-delegation/
+
+1. remote backup 1: on brumal, backup frostig
+================================
+	syncoid likes pulls, so we want this to work:
+	```
+	brumal$ syncoid --delete-target-snapshots --no-sync-snap --no-privilege-elevation frostig:zfrostig/root zbrumal/backup/zfrostig/root
+	```
+	which reqiures some permissions namely. brumal, the receiver needs rollback permissions
+	brumal# zfs allow price rollback zbrumal/backup/zfrostig
+	frostig# zfs allow price hold zfrostig/root
+
+2. remote backup 2: on frostig, backup brumal by pulling files from brumal
+================================
+	```
+	frostig$ syncoid --delete-target-snapshots --no-sync-snap --no-privilege-elevation brumal:zbrumal/root zfrostig/backup/zbrumal/root
+	```
+3. the two local backups:
+=========================
+	```
+	# backups the brumal snapshots that are on frostig
+	frostig$ syncoid --delete-target-snapshots --no-sync-snap --no-privilege-elevation zfrostig/backup/zbrumal/root zbackup/zbrumal/root
+	# backups the frostig snapshots
+	frostig$ syncoid --delete-target-snapshots --no-sync-snap --no-privilege-elevation zfrostig/root zbackup/zfrostig/root
+	```
+4. systemd timers for brumal:
+=============================
+	- brumal is responsible for remote backups of frostig, this means it occosionally wakes up to pull files from frostig:
+	`syncoid --delete-target-snapshots --no-sync-snap --no-privilege-elevation frostig:zfrostig/root zbrumal/backup/zfrostig/root`
+	```file:~/.config/systemd/user/syncoid.service
 	[Unit]
-	Description=ZFS Pool Scrub
-	After=multi-user.target
+	Description=Backup ZFS Snapshots of frostig
 
 	[Service]
+	Environment=TZ=UTC
 	Type=oneshot
-	ExecStart=/usr/sbin/zpool scrub zbackup
-	User=root
+	ExecStart=/bin/syncoid --delete-target-snapshots --no-sync-snap --no-privilege-elevation frostig:zfrostig/root zbrumal/backup/zfrostig/root
 	```
-
-	/etc/systemd/system/zfs-scrub.timer
-	```
+	```file:~/.config/systemd/user/syncoid.timer
 	[Unit]
-	Description=Weekly ZFS Scrub Timer
-	Requires=zfs-scrub.service
+	Description=Run Syncoid Every 59 Minutes
 
 	[Timer]
-	OnCalendar=Sun *-*-* 02:00:00
+	OnCalendar=*:0/59
+	Persistent=true
+
+	[Install]
+	WantedBy=timers.target
+
+	```
+	# to enable
+	$systemctl --user enable syncoid.timer
+	$systemctl --user start syncoid.timer
+	# to monitor
+	$journalctl --user -e -f
+
+5. systemd timers for frostig:
+=============================
+	```file:~/.config/systemd/user/syncoid.service
+	[Unit]
+	Description=Backup ZFS Snapshots of brumal and brumal/zfrostig roots to zbackup
+
+	[Service]
+	Environment=TZ=UTC
+	Type=oneshot
+	ExecStart=/bin/syncoid --delete-target-snapshots --no-sync-snap --no-privilege-elevation brumal:zbrumal/root zfrostig/backup/zbrumal/root
+	ExecStart=/bin/syncoid --delete-target-snapshots --no-sync-snap --no-privilege-elevation zfrostig/root zbackup/zfrostig/root
+	ExecStart=/bin/syncoid --delete-target-snapshots --no-sync-snap --no-privilege-elevation zfrostig/backup/zbrumal/root zbackup/zbrumal/root
+	```
+	```file:~/.config/systemd/user/syncoid.timer
+	[Unit]
+	Description=Run Syncoid Every 59 Minutes
+
+	[Timer]
+	OnCalendar=*:0/59
 	Persistent=true
 
 	[Install]
 	WantedBy=timers.target
 	```
-	- To make it work with  pushover or another service, uncomment and configure the approparite sections in:
-	`/etc/zfs/zed.d/zed.rc`
-	if you want notifications for a successful operation (default is to *only* report failures) set ZED_NOTIFY_VERBOSE=1
-	- to load:
-	```
-	sudo systemctl daemon-reload
-	sudo systemctl enable zfs-scrub.timer
-	sudo systemctl start zfs-scrub.timer
-	```
-	- to verify
-	```
-	sudo systemctl list-timers zfs-scrub.timer
-	sudo journalctl -u zfs-scrub.service
-	zpool status -v
-	```
 
 
+TROUBLESHOOTING SUDO-less REMOTE:
+================
+- permissions for sending (computer being backed up) might be needed on the remote:
+	remote$ sudo zfs allow $USER send zremote/root
+- permissions for  might be needed on the remote:
+	local$ sudo zfs allow $USER create,mount,receive,destroy zlocal/backup
 
-	Section: zfs
-	%#
-	(def zfs-scrub #f)
+Section: zfs
+%#
+(def syncoid #f)
+$(alias syncoid=syncoid)
 
-	$(alias zfs-scrub="zfs scrub")
+#%
+	this does snapshotting, to set it up use:
+	https://github.com/jimsalterjrs/sanoid/blob/master/INSTALL.md
+	```file:/usr/lib/systemd/system/sanoid.timer
+	[Unit]
+	Description=Run Sanoid Every 15 Minutes
+
+	[Timer]
+	OnCalendar=*:0/15
+	Persistent=true
+
+	[Install]
+	WantedBy=timers.target
+	```
+	sudo systemctl enable sanoid.timer
+
+	```file:/etc/sanoid/sanoid.conf
+	# you can also handle datasets recursively in an atomic way without the possibility to override settings for child datasets.
+       [zlocal/root]
+       frequently = 32
+       hourly = 36
+       daily = 60
+       monthly = 24
+       yearly = 10
+	```
+
+Section: zfs
+%#
+(def sanoid #f)
+$(alias sanoid=sanoid)
+
+#%
+	 (doc zfs)
+	 (doc zpool)
+	 (doc zfshelp)
+	 (doc syncoid)
+	 (doc sanoid)
+	 (doc zfs-snapshots)
+- zfs automount
+	+ https://superuser.com/questions/1561274/how-to-i-automatically-mount-a-zfs-pool-on-an-external-drive-automatically-on-bo
+	-Found the instructions in the Archlinux wiki. Since I had ZFS as root on this I actually could skip some of the steps - ZED is already set up on my system.
+
+		zed will populate and automount the pool for me if there's a suitable configuration file. I created an empty file
+
+		touch /etc/zfs/zfs-list.cache/storage
+
+		ZED didn't pick it up and populate it so I gave it a kick by disabling and enabling a pool
+		sudo zfs set canmount=off storage
+		sudo zfs set canmount=on storage
+
+		I rebooted the system and checked to see if its mounted and it was.
+-ZFS broken disk
+	terel ~ # zpool status
+	  pool: zterel
+	 state: DEGRADED
+	status: One or more devices could not be used because the label is missing or
+			invalid.  Sufficient replicas exist for the pool to continue
+			functioning in a degraded state.
+	action: Replace the device using 'zpool replace'.
+	   see: https://openzfs.github.io/openzfs-docs/msg/ZFS-8000-4J
+	  scan: resilvered 250M in 00:00:01 with 0 errors on
+	config:
+
+		NAME                      STATE     READ WRITE CKSUM
+		zbrumal                   DEGRADED     0     0     0
+		  mirror-0                DEGRADED     0     0     0
+			zbrumal0              ONLINE       0     0     0
+			xxxxxxxxxxxxxxxxxxxx  UNAVAIL      0     0     0  was /dev/mapper/zbrumal1
+	To try to use the drive again as is (perhaps the missing drive was simply no decrypted):
+		# zpool-reopen
+	Format the replacement drive:
+		# fdisk /dev/___
+	Encrypt the partition:
+		# cryptsetup ...
+	Mount the partition decrypted:
+		# cryptsetup open /dev/mapper/zhostX zhostX
+	Replace the unavailable device:
+		# zpool replace zbrumal xxxxxxxxxxxxxxxxxxxx /dev/mapper/zbrumal1
+
+Section: zfs
+%#
+(def zfshelp nil)
+
+
+#%
+	# to list snapshots
+		 - zfs list -r -t snapshot -o name,creation zbackup
+	# if we're feeling ambitious... `findoid` needs some docs!
+
+Section: zfs
+%#
+(def zfs-snapshot nil)
+
 ) ;; end ns
-
-

@@ -1,0 +1,273 @@
+(with-ns linux-docs
+
+#%
+which graphics cards/drivers are being used?
+
+# $ glxinfo | grep -E \"OpenGL vendor|OpenGL renderer\"
+
+
+Just type nvidia-smi in the terminal. Then check for the percentage of usage.
+That will indicate which GPU is in us
+
+Section: graphics
+%#
+(def graphics #f)
+
+#%
+See graphics
+
+Section: graphics
+%#
+(def nvidia #f)
+
+#%
+       on gentoo, for sys-libs/glibc compile with debug symbols:
+		https://wiki.gentoo.org/wiki/Debugging
+%#
+$(alias gdb=gdb)
+
+#%
+X.org has some basic screen saver functionality as well as energy saving features. Most likely either or both are responsible for the described behavior.
+
+The settings for both can be viewed and changed with the xset tool (from the x11-xserver-utils package). xset q displays the current settings in the sections Screen Saver and DPMS (Energy Star).
+
+You can disable the screen saver feature with:
+
+xset s off
+The power saving feature can be turned off with
+
+xset -dpms
+With these settings the screen should no longer turn off or blank automatically until you reboot your machine.
+
+If your main concern is that 5 minutes are to short, you can also just raise the limits for that. To enable the screen saver only after 15 minutes (900 seconds) idle time, set the timeout accordingly with
+
+xset s 900
+To turn off the monitor after 20 minutes of idling run
+
+xset dpms 0 0 1200
+The two 0 values disable standby and suspend respectively, while 1200 sets the timeout for off to 20 minutes. (I usually do not use standby or suspend because there seems to be no difference between the three modes on modern TFT-displays.) Setting these values also enables DPMS, so you do not need to explicitly run xset +dpms.
+
+Section: graphics
+%#
+(def screensaver nil)
+
+#%
+Systemd
+     	 ;; Cheat sheet https://wiki.gentoo.org/wiki/Gentoo_Cheat_Sheet
+	 (doc systemctl) ;; control services
+	 (doc journalctl)  ;; view logs
+	 (doc systemd-analyze) ;; some niche useful commands
+	 (doc systemctl-user) ;; notes on doing things at the user level
+
+Section: sys-docs
+%#
+(def systemd nil)
+
+#%
+To run latest docker container:
+	docker-compose stop
+	docker-compose rm -f
+	docker-compose -f docker-compose.yml up -d
+	# i.e. remove the containers before running up again.
+	# What one needs to keep in mind when doing it like this is that data volume
+	# containers are removed as well if you just run rm -f. In order to prevent
+	# that I specify explicitly each container to remove:
+	docker-compose rm -f application nginx php
+
+Section: sys-docs
+%#
+(def docker-compose #f)
+$(alias docker-compose=docker-compose)
+
+#%
+to see where systemd unit/timer files are allowed to go:
+systemd-analyze --user unit-paths
+%#
+(def systemd-analyze #f)
+$(alias systemd-analyze=systemd-analyze)
+
+#%
+ all systemctl commands can be given the --user flag but they need the following command
+     to be run as sudo so that all user-level services are started properly:
+sudo loginctl enable-linger $USER
+
+Section: sys-docs
+%#
+(def systemctl-user nil)
+
+#%
+GENERAL KNOWLEDGE:
+[learning](https://www.redhat.com/sysadmin/mastering-systemd)
+systemd stores logs in binary format with lots of fields for every given
+system log, to showcase all possible filter options run:
+	#> journalctl --output=verbose --all
+
+cool stuff:
+	/usr/bin/bash # by binary
+	_COMM=\"sshd\" just name of script or binary
+	--boot # since boot
+	--catalog # instructs journalctl to show context around lines, e.g. computer reboots,
+				service stopping restarting
+	--utc #!
+	-k  # kernel messages
+	_UID=1000 -n # by user
+	--no-pager # good for read
+	-n # recent logs
+	-n/--lines=1024 #last 1024 logs
+	-f/--follow
+	--output [json/json-pretty/others] # formatted in json!
+	--priority/-p N # provide log level
+
+log levels:
+	journalctl -unit=sshd --priority 3 --output json-pretty
+	0: emergency
+	1: alerts
+	2: critical
+	3: errors
+	4: warning
+	5: notice
+	6: info
+	7: debug
+
+time:
+	# \"yesterday\", \"today\", \"tomorrow\", or \"now\"
+	journalctl --since \"2015-01-10\" --until \"2015-01-11 03:00\"
+	journalctl --since yesterday
+	journalctl --since 09:00 --until \"1 hour ago\"
+
+Common commands:
+KERNEL:
+	- shows the linux kernel logs, could be across boots:
+		#> journalctl --catalog --lines=3000 --pager-end \"_TRANSPORT=kernel\"
+	or
+		#> journalctl --catalog --lines=3000 --pager-end -k
+
+	- shows the linux kernel logs from last --boot:
+		#> journalctl --catalog --lines=35000 --pager-end --boot -k
+	- or from beginning:
+		#> journalctl --catalog --boot -k
+	- or from previous boot:
+		#> journalctl --catalog --boot -1 -k
+ALL:
+	#> journalctl --catalog --lines=3000 --pager-end
+FILTERED:
+	- by a service
+		#> journalctl --catalog --lines=3000 --pager-end --unit=sshd.service
+	- or follow
+		#> journalctl -e -u systemd-resolved -f
+	- query list of services
+		#> systemctl list-units --type=service # to get service
+	- change log level by service name
+		#> systemctl service-log-level systemd-resolved debug
+GREP:
+	#> journalctl --catalog --lines=3000 --pager-end --grep \"port\" --priority 7
+
+Section: sys-docs
+%#
+(def journalctl #f)
+$(alias journalctl=journalctl)
+
+
+#%
+Systemd timers
+	- Save these files as ~/.config/systemd/user/some-service-name.*
+	- Run this now and after any modifications: systemctl --user daemon-reload
+	- Try out the service (oneshot): systemctl --user start some-service-name
+	- Check logs if something is wrong: journalctl -u --user-unit some-service-name
+	- Start the timer after this user logs in: systemctl --user enable --now some-service-name.timer
+file: some-service-name.service
+```
+[Unit]
+Description=Do some thing
+After=network.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h
+ExecStart=%h/my-service/script.py --some-arg=some-value
+
+[Install]
+WantedBy=default.target
+```
+
+file: some-service-name.timer
+```
+[Unit]
+Description=Run Do some thing every 30 minutes
+
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec=30min
+
+[Install]
+WantedBy=timers.target
+```
+
+Section: sys-docs
+%#
+(def systemd-timer #f)
+
+#%
+3. [Temporary Static IP via ip](jetbrains.com/help/rust/rust-switch-debuggers-and-renderers.html)
+
+$ ip address flush dev eth1
+$ ip route flush dev eth1
+$ ip address add 192.168.6.66/24 brd + dev eth1
+$ ip route add 192.168.6.1 dev eth1
+$ ip route add default via 192.168.6.1 dev eth1
+$ ip address show dev eth1
+[...]
+    inet 192.168.6.66/24 brd 192.168.6.255 scope global eth1
+[...]
+Copy
+After flushing all addresses and routes from eth1, we add a new static address and gateway. Next, we verify the settings by confirming that dynamic is no longer present in the interface characteristics. However, a system reboot now would wipe our network setup and restore the IP to what DHCP provides.
+
+addr add - Add an address
+- Add address 192.168.1.1 with netmask 24 to device em1
+	`ip addr add 192.168.1.1/24 dev em1`
+addr del - Delete an address
+- Remove address 192.168.1.1/24 from device em1
+`ip addr del 192.168.1.1/24 dev em1`
+addr - Display IP Addresses and property information (abbreviation of address)
+- Show information for all addresses
+	`ip addr`
+- Display information only for device em1
+	`ip addr show dev em1`
+link - Manage and display the state of all network interfaces
+- Show information for all interfaces
+	`ip link`
+- Display information only for device em1
+	`ip link show dev em1`
+- Display interface statistics
+	`ip -s link`
+link set - Alter the status of the interface
+- Bring em1 online
+	`ip link set em1 up`
+- Bring em1 offline
+	`ip link set em1 down`
+- Set the MTU on em1 to 9000
+	`ip link set em1 mtu 9000`
+- Enable promiscuous mode for em1
+	`ip link set em1 promisc on`
+route - Display and alter the routing table
+- List all of the route entries in the kernel
+	`ip route`
+route add - Add an entry to the routing table
+-Add a default route (for all addresses) via the local gateway 192.168.1.1 that can be reached on device em1
+	`ip route add default via 192.168.1.1 dev em1`
+- Add a route to 192.168.1.0/24 via the gateway at 192.168.1.1
+	`ip route add 192.168.1.0/24 via 192.168.1.1`
+- Add a route to 192.168.1.0/24 that can be reached on device em1
+	`ip route add 192.168.1.0/24 dev em1`
+route delete
+Delete a routing table entry
+ip route delete 192.168.1.0/24 via 192.168.1.1
+Delete the route for 192.168.1.0/24 via the gateway at 192.168.1.1
+
+Section: sys-docs
+%#
+(def ip #f)
+$(alias ip=ip)
+
+
+) ;; end ns

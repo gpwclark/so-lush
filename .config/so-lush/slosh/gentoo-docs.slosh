@@ -1,0 +1,192 @@
+(with-ns gentoo-docs
+
+#%
+Gentoo!
+     	 ;; Cheat sheet https://wiki.gentoo.org/wiki/Gentoo_Cheat_Sheet
+	 (doc equery) ;; probe system for information about system/packages
+	 (doc qlist)  ;; list intsalled files
+	 (doc e-file) ;; thru hardwork of `pfl` pkg, search for a file/binary and this will tell you which packages have it.
+	 (doc emerge) ;; main portage cli tool
+	 (doc eix)     ;; a feature rich wrapper for managing custom repos
+	 (doc eselect) ;; manage current configuration of system (eselect [repository|locale|etc] ...,).
+	 (doc gentoo-custom-repos) ;; Manage custom repos
+	 (doc dispatch-conf) ;; Portage utility used to safely and conveniently manage configuration files after package updates.
+	 (man portage) ;; The ❤️ of Gentoo. A glossary of terms and list of files associated with the mighty portage ⚓!
+
+Section: gentoo
+%#
+(def gentoo nil)
+
+#%
+	 # Install sanoid & syncoid
+amd64:# echo \"~sys-fs/sanoid-2.2.0\" >> /etc/portage/package.accept_keywords/sys-fs
+arm64:# echo \"~sys-fs/sanoid-2.2.0 **\" >> /etc/portage/package.accept_keywords/sys-fs
+# echo \"~dev-perl/Config-IniFiles-3.0.3::gentoo **\" >> /etc/portage/package.accept_keywords/dev-perl
+
+// there are some repositoryies that are set up through... I think it is eix, but you can easily make your own
+// see below
+
+// prereq
+amd64 & arm64:# emerge -avu -j 4 eselect-repository
+// actual commands
+# eselect repository enable vowstar
+# eix-sync OR emerge --sync #must do!
+# emerge -avu -j 4 sanoid app-admin/sudo
+# or
+# emerge -avuDN -j 4 media-sound/pamixer::menelkir
+
+// # to add a brand new repository
+1. sudo eselect repository add pingwho-overlay git https://ftp.pingwho.org/pub/gentoo/ftp/overlay/pingwho-overlay
+2. which updates the file /etc/portage/repos.conf/eselect-repo.conf w/ specific information that is editable.
+3. sudo emaint sync -r pingwho-overlay // to sync w/ that ebuild repo
+4. then sync w/ it: eix-update
+5. then search for packages in the new overlay: eix -R some package
+
+Section: gentoo
+%#
+(def gentoo-custom-repos nil)
+
+#%
+	https://wiki.gentoo.org/wiki/Handbook:AMD64/Portage/Tools#dispatch-conf
+
+	interactively update config changes
+%#
+(def dispatch-conf #f)
+$(alias dispatch-conf=dispatch-conf)
+
+#%
+	- read the news! very helpful stuff!
+		- eselect news read
+	- setting the locale
+		eselect locale list
+		eselect locale set <X> # where X is some number from `locale list`
+		locale -a # /etc/locale.conf is what ends up changed
+	- enable a new repo
+		eselect repository enable vowstar
+	- font config,
+		eselect fontconfig
+%#
+(def eselect #f)
+$(alias eselect=eselect)
+
+#%
+qlist -IRv list installed packages with version number and name of overlay used:
+%#
+(def qlist #f)
+$(alias qlist=qlist)
+
+#%
+PACAKGE INTROSPECTION
+	cheat sheet: https://wiki.gentoo.org/wiki/Gentoo_Cheat_Sheet
+
+	list installed packages with version number and name of overlay used:
+		`qlist -IRv`
+	what versions are installed?:
+		`equery y webkit-gtk`
+			shows keywords enabled for package but also details versions of said
+			package installed (and all available versions),
+			which repos those versions came from etc.
+		`equery list -po webkit-gtk` # simpler
+		`equery list webkit-gtk
+	Finding the package that a file came from with belongs (b)
+		`equery belongs -e /usr/bin/glxgears`
+	Listing files installed by a package with files (f)
+		`equery files --tree gentoolkit`
+%#
+(def equery #f)
+$(alias equery=equery)
+
+#%
+FULLTEXT:
+To view the list of packages in the world set, along with their available versions, it is possible to use eix:
+	eix --color -c --world | less -R
+
+I was just looking for the very same thing. If you use eix, you are in luck.
+
+From the wiki:
+Adding overlays to the cache
+
+To search not only in the portage tree but all the overlays, add overlays to the cache
+
+root # eix-remote update
+
+and then sync it all:
+
+root # eix-sync
+
+(example from my system)
+
+ $ eix nuvola
+* x11-themes/nuvola
+  Available versions:  1.0-r1^bs
+  Homepage:            http://www.kde-look.org/content/show.php?content=5358
+  Description:         Nuvola SVG icon theme
+
+Hmm that doesn't look like a google music player ... time to add some more sources:
+
+ $ eix-remote update
+<snip>
+Saving to: 'eix-cache.tbz2'
+* Unpacking data
+layman/Armageddon -> Armageddon
+layman/AstroFloyd -> AstroFloyd
+ layman/AzP -> AzP
+<snip>
+
+looks like about 500 sources :)
+
+root # eix-sync -q
+
+Now when searching, if you wish to expand your search, add -R (remote) to search all overlays, installed or not. You will want to sync it with eix-remote from time to time. See man eix.
+
+ $ eix -R nuvola
+* media-sound/nuvolaplayer
+ Available versions:  (~)2.0.1[2] (~)2.0.3[1] {debug}
+ Homepage:            https://launchpad.net/nuvola-player
+ Description:         Cloud music integration for your Linux desktop
+
+* x11-themes/nuvola
+ Available versions:  1.0-r1^bs
+ Homepage:            http://www.kde-look.org/content/show.php?content=5358
+ Description:         Nuvola SVG icon theme
+
+[1] \"sabayon\" layman/sabayon
+[2] \"tante\" layman/tante
+
+
+
+	OVERLAYS OH MY
+		add overlays to your cache with
+			`eix-remote update`
+		then sync
+			`eix-sync`
+		maybe update?
+			`eix-remote update`
+		maybe quiet sync again?
+			`eix sync -q`
+		search for packages installed OR not from the world's overlays
+			`eix -R webkit-gtk`
+		list all overlay installed packages on system
+			eix -J
+%#
+(def eix #f)
+$(alias eix=eix)
+
+#%
+	emerge -s thing-to-search
+	emerge -avuDN -j 5 package # ask verbose update deep newuse, with 5 cores for spawned processes
+	emerge -avuDN -j 5 @world # after updating USE flags or various /etc/portage/make.conf stuff or emerge --sync run this to update/rebuild software
+	emerge --sync # get new stuff!
+	emerge --deselect media-tv/v4l-utils to remove package from world file to then remove from the system when @world is updated. (preferred way to remove packages).
+	# finding files that aren't on your box
+		- do not forget about `pfl`!  Portage File List (PFL) can be used to search for files (or strings) provided by
+		packages that are not currently installed on a given system. This can be useful to find out what package to install
+		given the name of a file from a desired tool. Optionally, the PFL tool can update the online PFL database from the
+		list of locally installed files.
+		e.g.
+		e-file `pamixer`
+%#
+(def emerge #f)
+$(alias emerge=emerge)
+
+) ;; end ns
