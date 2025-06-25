@@ -82,6 +82,8 @@ $(alias docker-compose=docker-compose)
 #%
 to see where systemd unit/timer files are allowed to go:
 systemd-analyze --user unit-paths
+
+Section: sys-docs
 %#
 (def systemd-analyze #f)
 $(alias systemd-analyze=systemd-analyze)

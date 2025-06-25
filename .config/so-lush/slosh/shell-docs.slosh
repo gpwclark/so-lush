@@ -82,6 +82,8 @@ $(alias flox=flox)
 #%
 	 exclude a path, e.g. find rust file not in target
 		 - find . -path ./target -prune -o -iname \"*rs\"
+
+Section: tools
 %#
 (def find #f)
 $(alias find=find)

@@ -43,6 +43,7 @@ amd64 & arm64:# emerge -avu -j 4 eselect-repository
 5. then search for packages in the new overlay: eix -R some package
 
 Section: gentoo
+
 %#
 (def gentoo-custom-repos nil)
 
@@ -50,6 +51,8 @@ Section: gentoo
 	https://wiki.gentoo.org/wiki/Handbook:AMD64/Portage/Tools#dispatch-conf
 
 	interactively update config changes
+
+Section: gentoo
 %#
 (def dispatch-conf #f)
 $(alias dispatch-conf=dispatch-conf)
@@ -65,12 +68,17 @@ $(alias dispatch-conf=dispatch-conf)
 		eselect repository enable vowstar
 	- font config,
 		eselect fontconfig
+
+Section: gentoo
+
 %#
 (def eselect #f)
 $(alias eselect=eselect)
 
 #%
 qlist -IRv list installed packages with version number and name of overlay used:
+
+Section: gentoo
 %#
 (def qlist #f)
 $(alias qlist=qlist)
@@ -92,6 +100,8 @@ PACAKGE INTROSPECTION
 		`equery belongs -e /usr/bin/glxgears`
 	Listing files installed by a package with files (f)
 		`equery files --tree gentoolkit`
+
+Section: gentoo
 %#
 (def equery #f)
 $(alias equery=equery)
@@ -108,11 +118,11 @@ Adding overlays to the cache
 
 To search not only in the portage tree but all the overlays, add overlays to the cache
 
-root # eix-remote update
+root$ eix-remote update
 
 and then sync it all:
 
-root # eix-sync
+root$ eix-sync
 
 (example from my system)
 
@@ -135,13 +145,14 @@ layman/AstroFloyd -> AstroFloyd
 
 looks like about 500 sources :)
 
-root # eix-sync -q
+root$ eix-sync -q
 
 Now when searching, if you wish to expand your search, add -R (remote) to search all overlays, installed or not. You will want to sync it with eix-remote from time to time. See man eix.
 
  $ eix -R nuvola
+ ```
 * media-sound/nuvolaplayer
- Available versions:  (~)2.0.1[2] (~)2.0.3[1] {debug}
+ Available versions:  (~)2.0.1[2] (~)2.0.3[1] \{debug\}
  Homepage:            https://launchpad.net/nuvola-player
  Description:         Cloud music integration for your Linux desktop
 
@@ -152,8 +163,7 @@ Now when searching, if you wish to expand your search, add -R (remote) to search
 
 [1] \"sabayon\" layman/sabayon
 [2] \"tante\" layman/tante
-
-
+ ```
 
 	OVERLAYS OH MY
 		add overlays to your cache with
@@ -168,6 +178,8 @@ Now when searching, if you wish to expand your search, add -R (remote) to search
 			`eix -R webkit-gtk`
 		list all overlay installed packages on system
 			eix -J
+
+Section: gentoo
 %#
 (def eix #f)
 $(alias eix=eix)
@@ -185,6 +197,9 @@ $(alias eix=eix)
 		list of locally installed files.
 		e.g.
 		e-file `pamixer`
+
+Section: gentoo
+
 %#
 (def emerge #f)
 $(alias emerge=emerge)
