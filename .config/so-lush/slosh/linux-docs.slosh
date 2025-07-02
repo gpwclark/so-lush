@@ -8,6 +8,7 @@ which graphics cards/drivers are being used?
 
 Just type nvidia-smi in the terminal. Then check for the percentage of usage.
 That will indicate which GPU is in us
+`watch -n 1 'nvidia-smi --query-gpu=index,memory.used,utilization.gpu --format=csv'`
 
 Section: graphics
 %#
