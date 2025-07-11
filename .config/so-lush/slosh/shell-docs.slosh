@@ -119,34 +119,20 @@ Section: tools
 $(alias wget=wget)
 
 #%
-repo		| description					| remote
-===================================================================================================================
-clcli		| common lisp cli programs 			| git@github.com:gpwclark/clcli.git
--------------------------------------------------------------------------------------------------------------------
-i3		| i3						| git@github.com:gpwclark/i3.git
--------------------------------------------------------------------------------------------------------------------
-mr		| public - my repos manages			| git@github.com:gpwclark/vcsh_mr.git
-		| which repos are active			|
--------------------------------------------------------------------------------------------------------------------
-share		| anything private / notes/ etc. 		| git@bitbucket.org:price_clark/share-config.git
--------------------------------------------------------------------------------------------------------------------
-spacemacs	| emacs / doom config				| git@github.com:gpwclark/spacemacs.git
--------------------------------------------------------------------------------------------------------------------
-systemd		| user space systemd stuffz			| git@github.com:gpwclark/systemd.git
--------------------------------------------------------------------------------------------------------------------
-tmux		| tmux 						| git@github.com:gpwclark/tmux.git
--------------------------------------------------------------------------------------------------------------------
-nix		| nix						| git@github.com:gpwclark/nix.git
--------------------------------------------------------------------------------------------------------------------
-so-lush		| slush scripts for price			| git@github.com/gpwclark/so-lush.git
--------------------------------------------------------------------------------------------------------------------
-vim		| vim						| git@github.com:gpwclark/vim.git
--------------------------------------------------------------------------------------------------------------------
-secrets	| shhhh						| git@bitbucket.org:price_clark/secrets.git
--------------------------------------------------------------------------------------------------------------------
-zsh		| zsh PLUS everything else I want, e.g. inputrc	| git@github.com:gpwclark/zsh.git
-		| , environment initalization scripts, etc.	|
-===================================================================================================================
+| Repo      | Description              | Remote                            |
+|-----------|--------------------------|-----------------------------------|
+| clcli     | common lisp cli programs | git@github.com:gpwclark/clcli.git |
+| i3        | i3                       | git@github.com:gpwclark/i3.git    |
+| mr        | public - my repos manages which repos are active | git@github.com:gpwclark/vcsh_mr.git |
+| share     | anything private / notes/ etc. | git@bitbucket.org:price_clark/share-config.git |
+| spacemacs | emacs / doom config | git@github.com:gpwclark/spacemacs.git |
+| systemd   | user space systemd stuffz | git@github.com:gpwclark/systemd.git |
+| tmux      | tmux | git@github.com:gpwclark/tmux.git |
+| nix       | nix | git@github.com:gpwclark/nix.git |
+| so-lush   | slush scripts for price | git@github.com/gpwclark/so-lush.git |
+| vim       | vim | git@github.com:gpwclark/vim.git |
+| secrets   | shhhh | git@bitbucket.org:price_clark/secrets.git |
+| zsh       | zsh PLUS everything else I want, e.g. inputrc, environment initalization scripts, etc. | git@github.com:gpwclark/zsh.git |
 
 - settuing up a new machine
 1. install mr and vcsh
@@ -186,6 +172,17 @@ Section: tools
 %#
 (def vcsh #f)
 $(alias vcsh=vcsh)
+
+#%
+GOAL: is to automate most of my git usage through MR so that all my git repos are treated similarly.
+
+https://github.com/RichiH/myrepos/blob/master/mr
+mr up
+
+Section: tools
+%#
+(def mr #f)
+$(alias mr=mr)
 
 #%
 	 ε - 03b5
