@@ -63,6 +63,11 @@ https://flox.dev/docs/tutorials/creating-environments/
 https://etorreborre.blog/why-you-should-flox-every-day
 https://flox.dev/blog/extending-flox-with-nix-flakes/
 
+lang specific set ups
+=====================
+go - https://flox.dev/blog/using-flox-to-create-portable-reproducible-go-environments/
+rust (avoids need for rustup) - https://flox.dev/docs/cookbook/languages/rust/
+
 Section: tools
 
 %#
@@ -76,8 +81,8 @@ e.g.: ip route del 192.168.1.1/16 dev tailscale0 table 52
 
 Section: tools
 %#
-(def flox #f)
-$(alias flox=flox)
+(def tailscale #f)
+$(alias tailscale=tailscale)
 
 #%
 	 exclude a path, e.g. find rust file not in target
@@ -214,6 +219,9 @@ Section: tools
 $(alias tmux=tmux)
 
 #%
+command line features:
+{*git-prompt-features*}
+
 -apply patch from commit(s):
 	- git format-patch -<n> <rev>
 	- git format-patch -1 HEAD
@@ -221,7 +229,7 @@ $(alias tmux=tmux)
 
 	to apply: git am < file.patch
 
-Section: tools
+Section: scm
 %#
 (def git #f)
 $(alias git=git)
@@ -237,7 +245,7 @@ secrets.txt filter=git-crypt diff=git-crypt
 secretdir/** filter=git-crypt diff=git-crypt
 ===
 
-Section: tools
+Section: scm
 %#
 (def git-crypt #f)
 $(alias git-crypt=git-crypt)
@@ -254,6 +262,40 @@ Section: tools
 %#
 (def rg #f)
 $(alias rg=rg)
+
+#%
+
+To add tools to user's namespace, e.g. /home/price/.local/bin
+run:
+```
+uv tool install openai-whisper
+```
+
+Section: python-tools
+
+%#
+(def uv #f)
+$(alias uv=uv)
+
+#%
+
+```
+go install github.com/isaacphi/mcp-language-server@latest
+```
+
+and it will live in ~/bin/go/
+
+
+run like:
+```
+mcp-language-server --workspace ~/path/to/dev --lsp rust-analyzer
+```
+
+Section: go-tools
+
+%#
+(def mcp-language-server #f)
+$(alias mcp-language-server=mcp-language-server)
 
 ) ;; end ns
 
