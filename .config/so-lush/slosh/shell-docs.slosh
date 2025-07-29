@@ -124,20 +124,23 @@ Section: tools
 $(alias wget=wget)
 
 #%
-| Repo      | Description              | Remote                            |
-|-----------|--------------------------|-----------------------------------|
-| clcli     | common lisp cli programs | git@github.com:gpwclark/clcli.git |
-| i3        | i3                       | git@github.com:gpwclark/i3.git    |
-| mr        | public - my repos manages which repos are active | git@github.com:gpwclark/vcsh_mr.git |
-| share     | anything private / notes/ etc. | git@bitbucket.org:price_clark/share-config.git |
-| spacemacs | emacs / doom config | git@github.com:gpwclark/spacemacs.git |
-| systemd   | user space systemd stuffz | git@github.com:gpwclark/systemd.git |
-| tmux      | tmux | git@github.com:gpwclark/tmux.git |
-| nix       | nix | git@github.com:gpwclark/nix.git |
-| so-lush   | slush scripts for price | git@github.com/gpwclark/so-lush.git |
-| vim       | vim | git@github.com:gpwclark/vim.git |
-| secrets   | shhhh | git@bitbucket.org:price_clark/secrets.git |
-| zsh       | zsh PLUS everything else I want, e.g. inputrc, environment initalization scripts, etc. | git@github.com:gpwclark/zsh.git |
+<pre>
+| Repo      | Description          | Remote                                          |
+|-----------|----------------------|-------------------------------------------------|
+| clcli     | lisp cli programs    | git@github.com:gpwclark/clcli.git               |
+| i3        | i3                   | git@github.com:gpwclark/i3.git                  |
+| mr        | manages active repos | git@github.com:gpwclark/vcsh_mr.git             |
+| share     | private notes/config | git@bitbucket.org:price_clark/share-config.git  |
+| spacemacs | emacs / doom config  | git@github.com:gpwclark/spacemacs.git           |
+| systemd   | user space systemd   | git@github.com:gpwclark/systemd.git             |
+| tmux      | tmux                 | git@github.com:gpwclark/tmux.git                |
+| nix       | nix                  | git@github.com:gpwclark/nix.git                 |
+| so-lush   | slush scripts for me | git@github.com/gpwclark/so-lush.git             |
+| vim       | vim                  | git@github.com:gpwclark/vim.git                 |
+| secrets   | shhhh                | git@bitbucket.org:price_clark/secrets.git       |
+| zsh       | shell misc catchall  | git@github.com:gpwclark/zsh.git                 |
+|-----------|----------------------|-------------------------------------------------|
+</pre>
 
 - settuing up a new machine
 1. install mr and vcsh
