@@ -45,7 +45,7 @@ installation
 1. Install w/ 
 	`nix profile install --extra-experimental-features "nix-command flakes" github:flox/flox`
 2. Upgrade /w 
-	`nix profile upgrade --experimental-features "nix-command flakes" --accept-flake-config '.*flox'`
+	`nix profile upgrade --extra-experimental-features "nix-command flakes" --accept-flake-config flox`
 	&&
 		`nix flake update`
 	b/c nix does not always update transitive dependencies.
@@ -300,6 +300,14 @@ Section: go-tools
 (def mcp-language-server #f)
 $(alias mcp-language-server=mcp-language-server)
 
+
+#%
+# parinfer guide
+https://shaunlebron.github.io/parinfer/#introduction
+spacemacs parinfer layer
+https://www.spacemacs.org/layers/+misc/parinfer/README.html
+%#
+(def parinfer #f)
 ) ;; end ns
 
 (load "zfs-docs.slosh")
