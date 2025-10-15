@@ -30,7 +30,20 @@ for more info: :help \@!
 Section: tools
 %#
 (def vim #f)
-$(alias vim=vim)
+$(alias vim=nvim)
+
+#%
+# to magically tar anything, just get the file ending right in the first argument and use the `caf` flags which 
+# tell tar choose compression based on file ending (hence emphasis on correctness).
+tar caf grant_chroma_db.tar.xz grant_chroma_db/
+
+# decompressing is as simple as, which also conveys the idea of decompressing with the algorithm based on the file ending.
+tar xvf grant_chroma_db.tar.xz
+
+# this is "very" magic from a unix perspective where file endings mean nothing as the `file` command ultimately decides on linux
+#%
+(def tar #f)
+$(alias tar=tar)
 
 #%
 Usage: (flox ...)
@@ -49,6 +62,8 @@ installation
 	&&
 		`nix flake update`
 	b/c nix does not always update transitive dependencies.
+
+# transitive deps and whatprovides: https://discourse.flox.dev/t/querying-flox-for-metadata-about-a-packages-transitive-dependencies-and-a-packages-files/1154
 
 
 use
@@ -201,6 +216,14 @@ Section: info
 
 #%
 List of things no one can remember:
+- resize pane, use the C-a + : menu bar
+```
+	:resize-pane -L 20 # Resizes the current pane Left by 20 cells
+	:resize-pane -R 20 # Resizes the current pane Right by 20 cells
+	:resize-pane -D 20 # Resizes the current pane Down by 20 cells
+	:resize-pane -U 20 # Resizes the current pane Upward by 20 cells
+```
+
 - change cwd of session
 	- C-a + : then input attach-session -t . -c new-cwd
 - copy and paste
@@ -256,6 +279,8 @@ $(alias git-crypt=git-crypt)
 #%
 (Looking for string \"search\")
 
+-  --no-ignore
+           When set, ignore files such as .gitignore, .ignore and .rgignore will not be respected. This implies --no-ignore-dot, --no-ignore-exclude, --no-ignore-global, --no-ignore-parent and --no-ignore-vcs.
 - Exclude a directory from rg search
 	rg -g \"!legacy/**\" \"search\"
 - Match files with specific type
@@ -308,6 +333,25 @@ spacemacs parinfer layer
 https://www.spacemacs.org/layers/+misc/parinfer/README.html
 %#
 (def parinfer #f)
+
+
+#%
+
+https://medium.com/@screwlisp/my-personal-emacs-slime-useage-examples-b2c8b6b9e023
+
+window -> w
+files -> f
+project -> p
+	project tree view -> pt
+		hovering over a file and hit enter, will open. to go back SPCpt
+		k -> 
+ESC -> ctrl+g is more general (can exit helm)
+	and fd
+
+%#
+(def spacemacs #f)
+$(alias spacemacs="emacs -nw -c -a")
+
 ) ;; end ns
 
 (load "zfs-docs.slosh")
